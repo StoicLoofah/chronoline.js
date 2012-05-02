@@ -1,0 +1,38 @@
+.chronoline-canvas {
+    overflow: hidden;
+    position: relative;
+}
+.chronoline-canvas > svg {
+    position: relative;
+}
+.chronoline-wrapper:hover .chronoline-left,
+.chronoline-wrapper:hover .chronoline-right {
+    display: block;
+}
+.chronoline-left,
+.chronoline-right {
+    display: none;
+    top: 0;
+    position: absolute;
+    height: 100%;
+    width: 20px;
+    background-color: #0055e1;
+    cursor: pointer;
+}
+.chronoline-left {
+    left: 0;
+    }
+.chronoline-right {
+    right: 0;
+}
+.chronoline-left-icon,
+.chronoline-right-icon {
+    background: url("sprites.png") no-repeat scroll 0px 0 transparent;
+    height: 15px;
+    width: 10px;
+    cursor: pointer;
+    margin: 0 auto;
+}
+.chronoline-right-icon {
+    background-position: -10px 0;
+}

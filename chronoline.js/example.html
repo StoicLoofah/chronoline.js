@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>chronoline.js: A Chronology Timeline</title>
+    <style type="text/css">
+      #content {
+      width: 960px;
+
+      }
+      #timeline-tgt {
+      margin: 0 auto;
+      width: 90%;
+      min-height: 10px;
+      background-color: #f0f0f0;
+      position: relative;
+      }
+    </style>
+  <body>
+    <div id="content">
+      <p>Welcome to the chronoline.js demo page. Below is an example with a few events from the 2012 MLB Regular Season.</p>
+      <div id="timeline-tgt">
+      </div>
+    </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="jquery.qtip.min.css" />
+    <script type="text/javascript" src="jquery.qtip.min.js"></script>
+
+    <script type="text/javascript" src="raphael-min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="chronoline.css" />
+    <script type="text/javascript" src="chronoline.js"></script>
+    <script type="text/javascript">
+      var data = [
+      [[new Date(2012, 2, 28), new Date(2012, 9, 3)], "2012 MLB Regular Season"],
+      [[new Date(2012, 3, 5)], "Atlanta Braves @ New York Mets"],
+      [[new Date(2012, 3, 7), new Date(2012, 3, 8)], "Atlanta Braves @ New York Mets"],
+      [[new Date(2012, 3, 9), new Date(2012, 3, 11)], "Atlanta Braves @ Houston Astros"],
+      [[new Date(2012, 3, 13), new Date(2012, 3, 15)], "Milwaukee Brewers @ Atlanta Braves"],
+      [[new Date(2012, 3, 9), new Date(2012, 3, 11)], "Boston Red Sox @ Toronto Blue Jays"],
+      [[new Date(2012, 3, 13), new Date(2012, 3, 15)], "Baltimore Orioles @ Toronto Blue Jays"],
+      [[new Date(2012, 3, 17), new Date(2012, 3, 19)], "Tampa Bay Rays @ Toronto Blue Jays"],
+      [[new Date(2012, 3, 20), new Date(2012, 3, 23)], "Toronto Blue Jays @ Kansas City Royals"],
+      [[new Date(2012, 3, 5)], "Opening Day for 12 Teams"],
+      [[new Date(2012, 2, 28)], "Seattle Mariners v. Oakland A's in Japan"],
+      [[new Date(2012, 4, 18), new Date(2012, 5, 24)], "Interleague Play"],
+      [[new Date(2012, 5, 10)], "All-Star Game"],
+      ];
+
+      var elem = new Chronoline(document.getElementById("timeline-tgt"), data,
+      {'animated': true, 'tooltips': true, defaultStartDate: new Date(2012, 3, 5)});
+
+    </script>
+  </body>
+</html>
