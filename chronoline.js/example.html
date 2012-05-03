@@ -13,14 +13,20 @@
       background-color: #f0f0f0;
       position: relative;
       }
+      #to-today {
+      position: absolute;
+      right: 2px;
+      top: 2px;
+      z-index: 100;
+      }
     </style>
   <body>
     <div id="content">
       <p>Welcome to the chronoline.js demo page. Below is an example with a few events from the 2012 MLB Regular Season.</p>
       <div id="timeline-tgt">
+        <input id="to-today" type="button" value="Go To Today" />
       </div>
       <p>Some controls</p>
-      <input id="to-today" type="button" value="Go To Today" />
       <input id="get-left" type="button" value="Get Left Date" />
       <input id="get-right" type="button" value="Get Right Date" />
     </div>
@@ -58,8 +64,14 @@
       ];
 
       var timeline = new Chronoline(document.getElementById("timeline-tgt"), data,
-      {'animated': true, 'tooltips': true, defaultStartDate: new Date(2012, 3, 5),
-      'sections': sections});
+        {animated: true,
+         tooltips: true,
+         defaultStartDate: new Date(2012, 3, 5),
+         sections: sections,
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
+         subLabelAttrs: {'font-weight': 'bold'},
+
+      });
 
       $('#to-today').click(function(){timeline.goToToday();});
       $('#get-left').click(function(){alert(new Date(timeline.getLeftTime()));});

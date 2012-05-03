@@ -45,15 +45,18 @@ function Chronoline(domElement, events, options) {
         labelFormat: '%d',
         subLabel: 'month',
         subLabelMargin: 2,
+        subLabelAttrs: {},
         labelInterval: 'day',
         hashLength: 2,
         fontSize: 10,
         scrollable: true,
         scrollInterval: 7,
-        animated: false,  // requires jQuery
+        animated: false,
         tooltips: false,
         markToday: false,
-        sections: null
+        sections: null,
+        floatingSectionLabels: true,
+        sectionLabelAttrs: {},
     }
     var t = this;
 
@@ -83,8 +86,9 @@ function Chronoline(domElement, events, options) {
     };
 
     t.events.sort(t.sortEvents);
-    if(t.sections != null) t.sections.sort(t.sortEvents);
-
+    if(t.sections != null){
+        t.sections.sort(t.sortEvents);
+    }
 
 
     // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
@@ -155,7 +159,6 @@ function Chronoline(domElement, events, options) {
 
     t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
     t.paperElem = t.myCanvas.childNodes[0];
-    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20 + 'px';
 
     // DRAWING
     t.circleRadius = t.barHeight / 2;
@@ -172,9 +175,10 @@ function Chronoline(domElement, events, options) {
             elem.attr('stroke-width', 0);
             elem.attr('fill', section[2]);
 
-            var text = t.paper.text(startX, 10, section[1]);
+            var text = t.paper.text(startX + 10, 10, section[1]);
             text.attr('text-anchor', 'start');
-            text.data('left-bound', startX);
+            text.attr(t.sectionLabelAttrs);
+            text.data('left-bound', startX + 10);
             text.data('right-bound', endX);
             t.sectionLabelSet.push(text);
         }
@@ -233,50 +237,93 @@ function Chronoline(domElement, events, options) {
 
         var label = t.paper.text(x, bottomHashY + t.fontSize, formatDate(curDate, '%d'));
         label.attr('font-size', t.fontSize);
+
         if(t.markToday && curDate.getTime() == t.today.getTime()){
-            label.attr('text', label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase());
-            label.attr('font-size', t.fontSize + 2);
-            label.attr('y', bottomHashY + t.fontSize + 5);
+            label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
+                        'font-size': t.fontSize + 2,
+                        'y': bottomHashY + t.fontSize + 5});
             var bbox = label.getBBox();
             var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
             labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
             labelBox.insertBefore(label);
         }
+
         if(curDate.getDate() == 1 && t.subLabel == 'month'){
             var subLabel = t.paper.text(x, subLabelY, formatDate(curDate, '%b').toUpperCase()).attr('font-size', t.fontSize);
+            subLabel.attr(t.subLabelAttrs);
         }
     }
 
-    t.goToPixel = function(p) {
-        p = Math.min(p, 0);
-        p = Math.max(p, t.wrapper.clientWidth - t.totalWidth);
-        if(t.animated && !t.isMoving){
-            t.isMoving = true;
-            jQuery(t.paperElem).animate({left: p}, 400, function(){
-                t.isMoving = false;
+    t.isMoving = false;
+    t.goToPixel = function(finalLeft) {
+        /*
+          I tried several implementations here, including:
+          - moving the left of the canvas within a wrapper (current strategy)
+          - animating setViewbox using getAnimationFrame
+          - animating each individual element using getAnimation frame
+
+          - animating floating content using getAnimation (current strategy)
+          - animating floating content using raphael.animate
+          This solution is by far the smoothest and doesn't have any asynchrony problems. There's some twitching going on with floating content, but it's not THAT bad
+         */
+        finalLeft = Math.min(finalLeft, 0);
+        finalLeft = Math.max(finalLeft, t.wrapper.clientWidth - t.totalWidth);
+        var left = getLeft(t.paperElem);
+
+        if(t.isMoving) return;
+        var movingLabels = [];
+        if(t.sections != null && t.floatingSectionLabels){
+            t.sectionLabelSet.forEach(function(label){
+                if(label.data('left-bound') < -finalLeft && label.data('right-bound') > -finalLeft) {
+                    movingLabels.push([label, label.attr('x'),
+                                       -finalLeft - label.attr('x') + 10]);
+                } else if(label.attr('x') != label.data('left-bound')) {
+                    movingLabels.push([label, label.attr('x'), Math.max(
+                            -finalLeft - label.attr('x') + 10,
+                        label.data('left-bound') - label.attr('x'))]);
+                }
             });
-
-            if(t.sections != null){
-                var actualPos = -p;
-                t.sectionLabelSet.forEach(function(label){
-                    if(label.attr('x') != label.data('left-bound') &&
-                       label.data('right-bound') < actualPos) {
-                        label.animate({'x': label.data('left-bound')}, 400, 'linear');
-                    } else {
-                        if(label.data('left-bound') < actualPos &&
-                           label.data('right-bound') > actualPos) {
-                            label.animate({'x': actualPos}, 400, 'linear');
-                        }
-                    }
-
-                });
-            }
-
-
-        } else {
-            t.paperElem.style.left = p + 'px';
         }
+
+        if(t.animated){
+            t.isMoving = true;
+
+            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+            var start = Date.now();
+
+            var elem = t.paperElem;
+            function step(timestamp) {
+                var progress = (timestamp - start) / 400;
+                var pos = (finalLeft - left) * progress + left;
+                elem.style.left = pos + "px";
+
+                for(var i = 0; i < movingLabels.length; i++){
+                    movingLabels[i][0].attr('x', movingLabels[i][2] * progress + movingLabels[i][1]);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }else{
+                    t.paperElem.style.left = finalLeft + "px";
+                    for(var i = 0; i < movingLabels.length; i++){
+                        movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
+                    }
+                    t.isMoving = false;
+                }
+            }
+            requestAnimationFrame(step);
+
+        }else{
+            t.paperElem.style.left = finalLeft + 'px';
+            for(var i = 0; i < movingLabels.length; i++){
+                movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
+            }
+        }
+
     }
+    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20;
+    t.goToPixel(getLeft(t.paperElem));
 
 
     // CREATING THE NAVIGATION
