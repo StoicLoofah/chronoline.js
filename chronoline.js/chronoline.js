@@ -39,7 +39,7 @@ function Chronoline(domElement, events, options) {
         barHeight: 8,  //
         barMargin: 4,  //
         dateLabelHeight: 50, //
-        topMargin: 10,
+        topMargin: 40,
         fillColor: '#0055e1',
         strokeColor: '#0055e1',
         labelFormat: '%d',
@@ -52,7 +52,8 @@ function Chronoline(domElement, events, options) {
         scrollInterval: 7,
         animated: false,  // requires jQuery
         tooltips: false,
-        markToday: false
+        markToday: false,
+        sections: null
     }
     var t = this;
 
@@ -69,7 +70,7 @@ function Chronoline(domElement, events, options) {
     t.events = events;
 
     // SORT THE DATES SO I CAN POSITION THEM
-    t.events.sort(function(a, b){
+    t.sortEvents = function(a, b){
         a = a[0];
         b = b[0];
 
@@ -79,7 +80,12 @@ function Chronoline(domElement, events, options) {
             return aEnd - bEnd;
         }
         return a[0].getTime() - b[0].getTime();
-    });
+    };
+
+    t.events.sort(t.sortEvents);
+    if(t.sections != null) t.sections.sort(t.sortEvents);
+
+
 
     // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
     // TODO
@@ -144,7 +150,8 @@ function Chronoline(domElement, events, options) {
     t.pixelRatio = t.wrapper.clientWidth / t.visibleSpan;
     t.totalWidth = t.pixelRatio * (t.endDate - t.startDate);
 
-    t.totalHeight = t.dateLabelHeight + t.eventRows.length * (t.barMargin + t.barHeight) + t.topMargin;
+    t.eventsHeight = t.eventRows.length * (t.barMargin + t.barHeight);
+    t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
 
     t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
     t.paperElem = t.myCanvas.childNodes[0];
@@ -153,9 +160,24 @@ function Chronoline(domElement, events, options) {
     // DRAWING
     t.circleRadius = t.barHeight / 2;
 
+    // drawing sections
+    if(t.sections != null){
+        for(var i = 0; i < t.sections.length; i++){
+            var section = t.sections[i];
+            var startX = (section[0][0].getTime() - t.startTime) * t.pixelRatio;
+            var endX = (section[0][1].getTime() - t.startTime) * t.pixelRatio;
+            var elem = t.paper.rect(startX, 0, endX, t.totalHeight);
+            elem.attr('stroke-width', 0);
+            elem.attr('fill', section[2]);
+
+            var text = t.paper.text(startX, 10, section[1]);
+            text.attr('text-anchor', 'start');
+        }
+    }
+
     // drawing events
     for(var row = 0; row < t.eventRows.length; row++){
-        var upperY = t.topMargin + t.totalHeight - t.dateLabelHeight - (row + 1) * (t.barMargin + t.barHeight);
+        var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.barMargin + t.barHeight);
         for(var col = 0; col < t.eventRows[row].length; col++){
             var event = t.eventRows[row][col];
             var startX = (event[0][0].getTime() - t.startTime) * t.pixelRatio;
@@ -192,7 +214,7 @@ function Chronoline(domElement, events, options) {
         }
     }
 
-    var dateLineY = t.topMargin + t.totalHeight - t.dateLabelHeight;
+    var dateLineY = t.totalHeight - t.dateLabelHeight;
     t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
 
     // date labels
@@ -220,49 +242,68 @@ function Chronoline(domElement, events, options) {
         }
     }
 
+    t.goToPixel = function(p) {
+        p = Math.min(p, 0);
+        p = Math.max(p, t.wrapper.clientWidth - t.totalWidth);
+        if(t.animated && !t.isMoving){
+            t.isMoving = true;
+            jQuery(t.paperElem).animate({left: p}, function(){
+                t.isMoving = false;
+            });
+        } else {
+            t.paperElem.style.left = p + 'px';
+        }
+    }
+
+
     // CREATING THE NAVIGATION
     if(t.scrollable){
         t.scrollDistance = t.scrollInterval * DAY_IN_MILLISECONDS * t.pixelRatio;
 
-        t.leftArrow = document.createElement('div');
-        t.leftArrow.className = 'chronoline-left';
-        t.leftArrow.onclick = function(){
-            var left = Math.min(getLeft(t.paperElem) + t.scrollDistance, 0);
-
-            if(t.animated){
-                jQuery(t.paperElem).animate({left: left});
-            } else {
-                t.paperElem.style.left = left + 'px';
-            }
+        t.leftControl = document.createElement('div');
+        t.leftControl.className = 'chronoline-left';
+        t.leftControl.style.marginTop = t.topMargin + 'px';
+        t.leftControl.onclick = function(){
+            t.goToPixel(getLeft(t.paperElem) + t.scrollDistance);
             return false;
         };
 
-        var leftArrowIcon = document.createElement('div');
-        leftArrowIcon.className = 'chronoline-left-icon';
-        t.leftArrow.appendChild(leftArrowIcon);
-        t.wrapper.appendChild(t.leftArrow);
+        var leftIcon = document.createElement('div');
+        leftIcon.className = 'chronoline-left-icon';
+        t.leftControl.appendChild(leftIcon);
+        t.wrapper.appendChild(t.leftControl);
+        var controlHeight = Math.max(t.eventsHeight + t.dateLabelHeight / 2,
+                                     t.leftControl.clientHeight);
+        t.leftControl.style.height =  controlHeight + 'px';
+        leftIcon.style.marginTop = (controlHeight - 15) / 2 + 'px';
 
-        var iconMargin = (t.totalHeight - 10) / 2;
-        leftArrowIcon.style.marginTop = iconMargin + 'px';
-
-        t.rightArrow = document.createElement('div');
-        t.rightArrow.className = 'chronoline-right';
-        t.rightArrow.onclick = function(){
-            var left = Math.max(getLeft(t.paperElem) - t.scrollDistance, t.wrapper.clientWidth - t.totalWidth );
-            if(t.animated){
-                jQuery(t.paperElem).animate({left: left});
-            } else {
-                t.paperElem.style.left = left + 'px';
-            }
+        t.rightControl = document.createElement('div');
+        t.rightControl.className = 'chronoline-right';
+        t.rightControl.style.marginTop = t.topMargin + 'px';
+        t.rightControl.onclick = function(){
+            t.goToPixel(getLeft(t.paperElem) - t.scrollDistance);
             return false;
         };
 
-        var rightArrowIcon = document.createElement('div');
-        rightArrowIcon.className = 'chronoline-right-icon';
-        t.rightArrow.appendChild(rightArrowIcon);
-        t.wrapper.appendChild(t.rightArrow);
-        rightArrowIcon.style.marginTop = iconMargin + 'px';
+        var rightIcon = document.createElement('div');
+        rightIcon.className = 'chronoline-right-icon';
+        t.rightControl.appendChild(rightIcon);
+        t.wrapper.appendChild(t.rightControl);
+        t.rightControl.style.height = t.leftControl.style.height;
+        rightIcon.style.marginTop = leftIcon.style.marginTop;
 
     }
+
+    t.goToToday = function(){
+        t.goToPixel(-(t.today.getTime() - t.startTime) * t.pixelRatio + t.wrapper.clientWidth / 2);
+    };
+
+    t.getLeftTime = function(){
+        return Math.floor(t.startTime - getLeft(t.paperElem) / t.pixelRatio);
+    };
+
+    t.getRightTime = function(){
+        return Math.floor(t.startTime - (getLeft(t.paperElem) - t.wrapper.clientWidth) / t.pixelRatio);
+    };
 
 }
