@@ -162,6 +162,8 @@ function Chronoline(domElement, events, options) {
 
     // drawing sections
     if(t.sections != null){
+        t.sectionLabelSet = t.paper.set();
+
         for(var i = 0; i < t.sections.length; i++){
             var section = t.sections[i];
             var startX = (section[0][0].getTime() - t.startTime) * t.pixelRatio;
@@ -172,6 +174,9 @@ function Chronoline(domElement, events, options) {
 
             var text = t.paper.text(startX, 10, section[1]);
             text.attr('text-anchor', 'start');
+            text.data('left-bound', startX);
+            text.data('right-bound', endX);
+            t.sectionLabelSet.push(text);
         }
     }
 
@@ -247,9 +252,27 @@ function Chronoline(domElement, events, options) {
         p = Math.max(p, t.wrapper.clientWidth - t.totalWidth);
         if(t.animated && !t.isMoving){
             t.isMoving = true;
-            jQuery(t.paperElem).animate({left: p}, function(){
+            jQuery(t.paperElem).animate({left: p}, 400, function(){
                 t.isMoving = false;
             });
+
+            if(t.sections != null){
+                var actualPos = -p;
+                t.sectionLabelSet.forEach(function(label){
+                    if(label.attr('x') != label.data('left-bound') &&
+                       label.data('right-bound') < actualPos) {
+                        label.animate({'x': label.data('left-bound')}, 400, 'linear');
+                    } else {
+                        if(label.data('left-bound') < actualPos &&
+                           label.data('right-bound') > actualPos) {
+                            label.animate({'x': actualPos}, 400, 'linear');
+                        }
+                    }
+
+                });
+            }
+
+
         } else {
             t.paperElem.style.left = p + 'px';
         }
