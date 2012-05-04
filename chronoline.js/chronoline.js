@@ -15,6 +15,9 @@ function formatDate(date, formatString){
         var month = monthNames[date.getMonth()].substring(0, 3);
         ret = ret.replace('%b', month);
     }
+    if(formatString.indexOf('%Y') != -1){
+        ret = ret.replace('%Y', date.getFullYear());
+    }
 
     return ret;
 }
@@ -32,28 +35,41 @@ function Chronoline(domElement, events, options) {
     DAY_IN_MILLISECONDS = 86400000;
 
     var defaults = {
-        defaultStartDate: null,
-        startDate: null,
-        endDate: null,
+        defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
+        startDate: null,  // start of the timeline. Defaults to first event date
+        endDate: null,  // end of the timeline. Defauls to the last event date
+
         visibleSpan: 2592000000,  // in milliseconds,
-        barHeight: 8,  //
-        barMargin: 4,  //
-        dateLabelHeight: 50, //
-        topMargin: 40,
-        fillColor: '#0055e1',
-        strokeColor: '#0055e1',
+
+        topMargin: 40,  // overhead space on the canvas. useful for additional content
+        eventHeight: 5,  // how tall event events are
+        eventMargin: 4,  // how far apart the events are
+        dateLabelHeight: 50, // how tall the bottom margin for the dates is
+        hashLength: 2,  // length of the hash marks for the days
+        minEventsHeight: 40,
+        maxEventsHeight: 1000,
+
+        eventAttrs: {  // attributes for the events
+            fill: '#0055e1',  // for the event
+            stroke: '#0055e1',  // for the events
+        },
+
+        labelInterval: 'day',
         labelFormat: '%d',
+
         subLabel: 'month',
         subLabelMargin: 2,
         subLabelAttrs: {},
-        labelInterval: 'day',
-        hashLength: 2,
+        floatingSubLabels: true,
+
         fontSize: 10,
         scrollable: true,
         scrollInterval: 7,
         animated: false,
+
         tooltips: false,
         markToday: false,
+
         sections: null,
         floatingSectionLabels: true,
         sectionLabelAttrs: {},
@@ -154,19 +170,18 @@ function Chronoline(domElement, events, options) {
     t.pixelRatio = t.wrapper.clientWidth / t.visibleSpan;
     t.totalWidth = t.pixelRatio * (t.endDate - t.startDate);
 
-    t.eventsHeight = t.eventRows.length * (t.barMargin + t.barHeight);
+    t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
     t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
 
     t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
     t.paperElem = t.myCanvas.childNodes[0];
 
     // DRAWING
-    t.circleRadius = t.barHeight / 2;
+    t.circleRadius = t.eventHeight / 2;
 
+    t.floatingSet = t.paper.set();
     // drawing sections
     if(t.sections != null){
-        t.sectionLabelSet = t.paper.set();
-
         for(var i = 0; i < t.sections.length; i++){
             var section = t.sections[i];
             var startX = (section[0][0].getTime() - t.startTime) * t.pixelRatio;
@@ -175,37 +190,39 @@ function Chronoline(domElement, events, options) {
             elem.attr('stroke-width', 0);
             elem.attr('fill', section[2]);
 
-            var text = t.paper.text(startX + 10, 10, section[1]);
-            text.attr('text-anchor', 'start');
-            text.attr(t.sectionLabelAttrs);
-            text.data('left-bound', startX + 10);
-            text.data('right-bound', endX);
-            t.sectionLabelSet.push(text);
+            var sectionLabel = t.paper.text(startX + 10, 10, section[1]);
+            sectionLabel.attr('text-anchor', 'start');
+            sectionLabel.attr(t.sectionLabelAttrs);
+            if(t.floatingSectionLabels){
+                sectionLabel.data('left-bound', startX + 10);
+                sectionLabel.data('right-bound', endX - sectionLabel.attr('width'));
+                t.floatingSet.push(sectionLabel);
+            }
         }
     }
 
     // drawing events
     for(var row = 0; row < t.eventRows.length; row++){
-        var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.barMargin + t.barHeight);
+        var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
         for(var col = 0; col < t.eventRows[row].length; col++){
             var event = t.eventRows[row][col];
             var startX = (event[0][0].getTime() - t.startTime) * t.pixelRatio;
             var elem = null;
             if(event[0].length == 1){  // it's a single point
-                elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr('fill', t.fillColor).attr('stroke', t.strokeColor);
+                elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
             } else {  // it's a range
                 var width = (getEndDate(event[0]) - event[0][0]) * t.pixelRatio;
-                // left rounded corner
-                t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr('fill', t.fillColor).attr('stroke', t.strokeColor);
-                // right rounded corner
-                t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr('fill', t.fillColor).attr('stroke', t.strokeColor);
-                elem = t.paper.rect(startX, upperY, width, t.barHeight).attr('fill', t.fillColor).attr('stroke', t.strokeColor);
-
+                t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);  // left rounded corner
+                t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);  // right rounded corner
+                elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
             elem.attr('title', event[1]);
             if(t.tooltips){
                 $(elem.node).parent().qtip({
+                    content: {
+                        title: event[2]
+                    },
                     position: {
 			my: 'top left',
 			target: 'mouse',
@@ -217,7 +234,9 @@ function Chronoline(domElement, events, options) {
 		    hide: {
 			fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
 		    },
-
+                    style: {
+                        classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded',
+                    }
                 });
             }
         }
@@ -249,8 +268,17 @@ function Chronoline(domElement, events, options) {
         }
 
         if(curDate.getDate() == 1 && t.subLabel == 'month'){
-            var subLabel = t.paper.text(x, subLabelY, formatDate(curDate, '%b').toUpperCase()).attr('font-size', t.fontSize);
+            var subLabel = t.paper.text(x, subLabelY, formatDate(curDate, '%b').toUpperCase());
+            subLabel.attr('font-size', t.fontSize);
             subLabel.attr(t.subLabelAttrs);
+            if(t.floatingSubLabels){
+                subLabel.data('left-bound', x);
+                var endOfMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0);
+                subLabel.data('right-bound',
+                              Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio,
+                                       t.totalWidth));
+                t.floatingSet.push(subLabel);
+            }
         }
     }
 
@@ -266,24 +294,37 @@ function Chronoline(domElement, events, options) {
           - animating floating content using raphael.animate
           This solution is by far the smoothest and doesn't have any asynchrony problems. There's some twitching going on with floating content, but it's not THAT bad
          */
+        if(t.isMoving) return;
+
         finalLeft = Math.min(finalLeft, 0);
         finalLeft = Math.max(finalLeft, t.wrapper.clientWidth - t.totalWidth);
         var left = getLeft(t.paperElem);
 
-        if(t.isMoving) return;
-        var movingLabels = [];
-        if(t.sections != null && t.floatingSectionLabels){
-            t.sectionLabelSet.forEach(function(label){
-                if(label.data('left-bound') < -finalLeft && label.data('right-bound') > -finalLeft) {
-                    movingLabels.push([label, label.attr('x'),
-                                       -finalLeft - label.attr('x') + 10]);
-                } else if(label.attr('x') != label.data('left-bound')) {
-                    movingLabels.push([label, label.attr('x'), Math.max(
-                            -finalLeft - label.attr('x') + 10,
-                        label.data('left-bound') - label.attr('x'))]);
-                }
-            });
+        if(t.scrollable){
+            if(finalLeft == 0){
+                t.leftControl.style.display = 'none';
+            } else {
+                t.leftControl.style.display = '';
+            }
+            if(finalLeft == t.wrapper.clientWidth - t.totalWidth){
+                t.rightControl.style.display = 'none';
+            } else {
+                t.rightControl.style.display = '';
+            }
         }
+
+        var movingLabels = [];
+        var floatedLeft = -finalLeft + 5;
+        t.floatingSet.forEach(function(label){
+            // pin to the left side
+            if(label.data('left-bound') < floatedLeft && label.data('right-bound') > floatedLeft) {
+                movingLabels.push([label, label.attr('x'),
+                                   floatedLeft - label.attr('x') + 10]);
+            } else if(label.attr('x') != label.data('left-bound')) { // push it to where it should be
+                movingLabels.push([label, label.attr('x'),
+                    label.data('left-bound') - label.attr('x')]);
+            }
+        });
 
         if(t.animated){
             t.isMoving = true;
@@ -294,7 +335,7 @@ function Chronoline(domElement, events, options) {
 
             var elem = t.paperElem;
             function step(timestamp) {
-                var progress = (timestamp - start) / 400;
+                var progress = (timestamp - start) / 200;
                 var pos = (finalLeft - left) * progress + left;
                 elem.style.left = pos + "px";
 
@@ -322,9 +363,6 @@ function Chronoline(domElement, events, options) {
         }
 
     }
-    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20;
-    t.goToPixel(getLeft(t.paperElem));
-
 
     // CREATING THE NAVIGATION
     if(t.scrollable){
@@ -342,7 +380,7 @@ function Chronoline(domElement, events, options) {
         leftIcon.className = 'chronoline-left-icon';
         t.leftControl.appendChild(leftIcon);
         t.wrapper.appendChild(t.leftControl);
-        var controlHeight = Math.max(t.eventsHeight + t.dateLabelHeight / 2,
+        var controlHeight = Math.max(t.eventsHeight,
                                      t.leftControl.clientHeight);
         t.leftControl.style.height =  controlHeight + 'px';
         leftIcon.style.marginTop = (controlHeight - 15) / 2 + 'px';
@@ -376,4 +414,7 @@ function Chronoline(domElement, events, options) {
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.wrapper.clientWidth) / t.pixelRatio);
     };
 
+
+    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20;
+    t.goToPixel(getLeft(t.paperElem));
 }
