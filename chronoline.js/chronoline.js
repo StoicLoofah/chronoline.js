@@ -1,5 +1,12 @@
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+function stripTime(date){
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+}
+
 function formatDate(date, formatString){
     // done in the style of c's strftime
     // TODO slowly adding in new parts to this
@@ -169,6 +176,15 @@ function Chronoline(domElement, events, options) {
     // this ratio converts a time into a pixel position
     t.pixelRatio = t.wrapper.clientWidth / t.visibleSpan;
     t.totalWidth = t.pixelRatio * (t.endDate - t.startDate);
+    t.maxLeftPixel = t.totalWidth - t.wrapper.clientWidth;
+
+    t.pixelToMs = function(pixel){
+        return t.startTime + pixel / t.pixelRatio;
+    }
+    t.msToPixel = function(ms){
+        return (ms - t.startTime) * t.pixelRatio;
+    }
+
 
     t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
     t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
@@ -245,39 +261,83 @@ function Chronoline(domElement, events, options) {
     var dateLineY = t.totalHeight - t.dateLabelHeight;
     t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
 
+    t.bottomHashY = dateLineY + t.hashLength;
+    t.labelY = t.bottomHashY + t.fontSize;
+    t.subLabelY = t.bottomHashY + t.fontSize * 2 + t.subLabelMargin;
+
     // date labels
-    var bottomHashY = dateLineY + t.hashLength;
-    var subLabelY = bottomHashY + t.fontSize * 2 + t.subLabelMargin;
-    var curDate = t.startDate;
-    while(curDate < t.endDate){
-        curDate = new Date(curDate.getTime() + DAY_IN_MILLISECONDS);
-        var x = (curDate.getTime() - t.startTime) * t.pixelRatio;
-        t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + bottomHashY);
+    t.drawLabelsHelper = function(startMs, endMs){
+        for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
+            var curDate = new Date(curMs);
+            var x = t.msToPixel(curMs);
+            t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
 
-        var label = t.paper.text(x, bottomHashY + t.fontSize, formatDate(curDate, '%d'));
-        label.attr('font-size', t.fontSize);
+            var day = curDate.getDate();
+            var displayDate = String(day);
+            if(displayDate.length == 1)
+                displayDate = '0' + displayDate;
 
-        if(t.markToday && curDate.getTime() == t.today.getTime()){
-            label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
-                        'font-size': t.fontSize + 2,
-                        'y': bottomHashY + t.fontSize + 5});
-            var bbox = label.getBBox();
-            var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
-            labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
-            labelBox.insertBefore(label);
+            var label = t.paper.text(x, t.labelY, displayDate);
+            label.attr('font-size', t.fontSize);
+
+            if(t.markToday && curMs.getTime() == t.today.getTime()){
+                label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
+                            'font-size': t.fontSize + 2,
+                            'y': t.bottomHashY + t.fontSize + 5});
+                var bbox = label.getBBox();
+                var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
+                labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
+                labelBox.insertBefore(label);
+            }
+
+            if(day == 1 && t.subLabel == 'month'){
+                var subLabel = t.paper.text(x, t.subLabelY, formatDate(curDate, '%b').toUpperCase());
+                subLabel.attr('font-size', t.fontSize);
+                subLabel.attr(t.subLabelAttrs);
+                if(t.floatingSubLabels){
+                    subLabel.data('left-bound', x);
+                    var endOfMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0);
+                    subLabel.data('right-bound',
+                                  Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio,
+                                           t.totalWidth));
+                    t.floatingSet.push(subLabel);
+                }
+            }
         }
+    }
 
-        if(curDate.getDate() == 1 && t.subLabel == 'month'){
-            var subLabel = t.paper.text(x, subLabelY, formatDate(curDate, '%b').toUpperCase());
-            subLabel.attr('font-size', t.fontSize);
-            subLabel.attr(t.subLabelAttrs);
-            if(t.floatingSubLabels){
-                subLabel.data('left-bound', x);
-                var endOfMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0);
-                subLabel.data('right-bound',
-                              Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio,
-                                       t.totalWidth));
-                t.floatingSet.push(subLabel);
+    t.drawnStartMs = null;
+    t.drawnEndMs = null;
+    t.drawLabels = function(leftPixelPos){
+        var newStartPixel = Math.max(0, leftPixelPos - t.wrapper.clientWidth);
+        var newEndPixel = Math.min(t.totalWidth, leftPixelPos + 2 * t.wrapper.clientWidth);
+
+        var newStartDate = new Date(t.pixelToMs(leftPixelPos));
+        newStartDate = new Date(newStartDate.getFullYear(), newStartDate.getMonth(), 1);
+
+        var newStartMs = newStartDate.getTime();
+        var newEndDate = new Date(t.pixelToMs(Math.min(t.totalWidth, leftPixelPos + 2 * t.wrapper.clientWidth)));
+        stripTime(newEndDate);
+        var newEndMs = newEndDate.getTime();
+
+        if(t.drawnStartMs == null){
+            t.drawnStartMs = newStartMs;
+            t.drawnEndMs = newEndMs;
+            t.drawLabelsHelper(newStartMs, newEndMs);
+        }else if(newStartMs > t.drawnEndMs){
+            t.drawLabelsHelper(t.drawnEndMs, newEndMs);
+            t.drawnEndMs = newEndMs;
+        }else if(newEndMs < t.drawnStartMs){
+            t.drawLabelsHelper(t.drawnStartMs, newStartMs);
+            t.drawnStartMs = newStartMs;
+        }else {
+            if(newStartMs < t.drawnStartMs){
+                t.drawLabelsHelper(newStartMs, t.drawnStartMs);
+                t.drawnStartMs = newStartMs;
+            }
+            if(newEndMs > t.drawnEndMs){
+                t.drawLabelsHelper(t.drawnEndMs, newEndMs);
+                t.drawnEndMs = newEndMs;
             }
         }
     }
@@ -296,8 +356,9 @@ function Chronoline(domElement, events, options) {
          */
         if(t.isMoving) return;
 
+        t.drawLabels(-finalLeft);
         finalLeft = Math.min(finalLeft, 0);
-        finalLeft = Math.max(finalLeft, t.wrapper.clientWidth - t.totalWidth);
+        finalLeft = Math.max(finalLeft, -t.maxLeftPixel);
         var left = getLeft(t.paperElem);
 
         if(t.scrollable){
