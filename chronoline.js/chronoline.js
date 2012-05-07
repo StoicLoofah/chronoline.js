@@ -52,13 +52,15 @@ function Chronoline(domElement, events, options) {
         eventHeight: 5,  // how tall event events are
         eventMargin: 4,  // how far apart the events are
         dateLabelHeight: 50, // how tall the bottom margin for the dates is
-        hashLength: 2,  // length of the hash marks for the days
+        hashLength: 4,  // length of the hash marks for the days
         minEventsHeight: 40,
         maxEventsHeight: 1000,
 
-        eventAttrs: {  // attributes for the events
-            fill: '#0055e1',  // for the event
-            stroke: '#0055e1',  // for the events
+	hashColor: '#b8b8b8',
+
+        eventAttrs: {
+            fill: '#0055e1',
+            stroke: '#0055e1'
         },
 
         labelInterval: 'day',
@@ -69,7 +71,10 @@ function Chronoline(domElement, events, options) {
         subLabelAttrs: {},
         floatingSubLabels: true,
 
-        fontSize: 10,
+        fontAttrs: {
+	    'font-size': 10,
+	    fill: '#b8b8b8'
+	},
         scrollable: true,
         scrollInterval: 7,
         animated: false,
@@ -79,7 +84,7 @@ function Chronoline(domElement, events, options) {
 
         sections: null,
         floatingSectionLabels: true,
-        sectionLabelAttrs: {},
+        sectionLabelAttrs: {}
     }
     var t = this;
 
@@ -259,18 +264,20 @@ function Chronoline(domElement, events, options) {
     }
 
     var dateLineY = t.totalHeight - t.dateLabelHeight;
-    t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
+    var baseline = t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
+    baseline.attr('stroke', t.hashColor);
 
     t.bottomHashY = dateLineY + t.hashLength;
-    t.labelY = t.bottomHashY + t.fontSize;
-    t.subLabelY = t.bottomHashY + t.fontSize * 2 + t.subLabelMargin;
+    t.labelY = t.bottomHashY + t.fontAttrs['font-size'];
+    t.subLabelY = t.bottomHashY + t.fontAttrs['font-size'] * 2 + t.subLabelMargin;
 
     // date labels
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
             var x = t.msToPixel(curMs);
-            t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
+            var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
+	    hash.attr('stroke', t.hashColor);
 
             var day = curDate.getDate();
             var displayDate = String(day);
@@ -278,12 +285,12 @@ function Chronoline(domElement, events, options) {
                 displayDate = '0' + displayDate;
 
             var label = t.paper.text(x, t.labelY, displayDate);
-            label.attr('font-size', t.fontSize);
+            label.attr(t.fontAttrs);
 
             if(t.markToday && curMs.getTime() == t.today.getTime()){
                 label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
-                            'font-size': t.fontSize + 2,
-                            'y': t.bottomHashY + t.fontSize + 5});
+                            'font-size': t.fontAttrs['font-size'] + 2,
+                            'y': t.bottomHashY + t.fontAttrs['font-size'] + 5});
                 var bbox = label.getBBox();
                 var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
                 labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
@@ -292,13 +299,13 @@ function Chronoline(domElement, events, options) {
 
             if(day == 1 && t.subLabel == 'month'){
                 var subLabel = t.paper.text(x, t.subLabelY, formatDate(curDate, '%b').toUpperCase());
-                subLabel.attr('font-size', t.fontSize);
+                subLabel.attr(t.fontAttrs);
                 subLabel.attr(t.subLabelAttrs);
                 if(t.floatingSubLabels){
                     subLabel.data('left-bound', x);
                     var endOfMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0);
                     subLabel.data('right-bound',
-                                  Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio,
+                                  Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio - 5,
                                            t.totalWidth));
                     t.floatingSet.push(subLabel);
                 }
