@@ -263,6 +263,7 @@ function Chronoline(domElement, events, options) {
 
     // DRAWING
     t.floatingSet = t.paper.set();
+    t.sectionLabelSet = t.paper.set();
     // drawing sections
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
@@ -281,6 +282,7 @@ function Chronoline(domElement, events, options) {
                 sectionLabel.data('left-bound', startX + 10);
                 sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
                 t.floatingSet.push(sectionLabel);
+                t.sectionLabelSet.push(sectionLabel);
             }
 
             elem.data('label', sectionLabel);
@@ -294,11 +296,9 @@ function Chronoline(domElement, events, options) {
         }
     }
 
-    // THIS ASSUMES THAT OTHER CONTENT HAS NOT BEEN ADDED YET. IT"S A HACK
-    t.floatingSet.forEach(function(label){
+    t.sectionLabelSet.forEach(function(label){
         label.toFront();
     });
-
 
     // drawing events
     for(var row = 0; row < t.eventRows.length; row++){
@@ -337,6 +337,18 @@ function Chronoline(domElement, events, options) {
                         classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded',
                     }
                 });
+            }
+            if(t.sections != null && t.sectionLabelsOnHover){
+                var originalIndex = event[3];
+                var newIndex = 0;
+                for(var i = 0; i < t.sections.length; i++){
+                    if(t.sections[i][3] == originalIndex){
+                        elem.data('sectionLabel', t.sectionLabelSet[i]);
+                        break;
+                    }
+                }
+                elem.hover(function(){this.data('sectionLabel').animate({opacity: 1}, 200);},
+                           function(){this.data('sectionLabel').animate({opacity: 0}, 200);});
             }
         }
     }
