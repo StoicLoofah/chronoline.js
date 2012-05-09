@@ -30,6 +30,7 @@ Other thoughts:
 
 Implementation notes
 --------------------
+* "px" is for pixels, "ms" is for milliseconds. Time is tracked by milliseconds (as Dates do in JS), and this is converted into pixels to be displayed
 * most aesthetics are options. Much other functionality can be modified by providing functions, such as the scrolling intervals
 * the smallest resolution you can get is days. In fact, all time information is stripped out of incoming dates
 * all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways
@@ -37,6 +38,6 @@ Implementation notes
 
 Credits
 -------
-* Built by and for [Zanbato](http://zanbato.com). [Ping us](https://zanbato.com/careers/) if you're interested in working with us!
+* Built by and for [Zanbato](https://zanbato.com). [Ping us](https://zanbato.com/careers/) if you're interested in working with us!
 * Developed by [Kevin Leung](http://kevinleung.com)
 * Designed by [Deny Khoung](http://twitter.com/#!/denykhoung)

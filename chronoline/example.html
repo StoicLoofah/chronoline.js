@@ -2,9 +2,21 @@
   <head>
     <title>chronoline.js: A Chronology Timeline</title>
     <style type="text/css">
+      body {
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      }
+      h1 {
+      margin-bottom: 0;
+      }
+      a {
+      text-decoration: none;
+      }
+      a:hover {
+      text-decoration: underline;
+      }
       #content {
       width: 960px;
-
+      margin: 0 auto;
       }
       .timeline-tgt {
       margin: 0 auto;
@@ -22,21 +34,21 @@
     </style>
   <body>
     <div id="content">
-      <p>Welcome to the chronoline.js demo page. Below 3 examples with events from the 2012 MLB Regular Season.</p>
-
-      <p>This timeline operates on the scale of days</p>
+      <h1>chronoline.js</h1>
+      <span style="font-size: 10px;">From <a href="https://zanbato.com">Zanbato</a></span>
+      <p><a href="https://github.com/StoicLoofah/chronoline.js">GitHub project page</a></p>
+      <p>Welcome to the chronoline.js demo page. chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. Below are 3 examples with events from the 2012 MLB Regular Season.</p>
+      <h2>Monthly Timeline</h2>
+      <p>This day-by-day timeline shows off a few features. The events are automatically stacked compactly when they overlap, whether over a single point or a range. Also notice how the month labels stick to the edges when you scroll forward and past the first day of the month.
       <div id="target1" class="timeline-tgt">
         <input id="to-today" type="button" value="Go To Today" />
       </div>
-      <p>Some controls</p>
-      <input id="get-left" type="button" value="Get Left Date" />
-      <input id="get-right" type="button" value="Get Right Date" />
-
-      <p>This timeline operates on the scale of quarters</p>
+      <h2>Quarterly Timeline</h2>
+      <p>Timelines can appear on different scales simply by plugging in one of a few existing defaults or by providing custom functions for it. Additionally, there are different options for how you want (or don't want) to highlight today on the timeline. If qtip is used, events also have tooltips.</p>
       <div id="target2" class="timeline-tgt">
       </div>
-
-      <p>This timeline operates on the scale of years</p>
+      <h2>Yearly Timeline</h2>
+      <p>Even at a very large scope, chronoline.js still functions. Events are stacked differently because there isn't enough space to place them adjacently anymore.</p>
       <div id="target3" class="timeline-tgt">
       </div>
     </div>
@@ -83,12 +95,10 @@
          tooltips: true,
          defaultStartDate: new Date(2012, 3, 5),
          sections: sections,
-         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'}
       });
 
       $('#to-today').click(function(){timeline1.goToToday();});
-      $('#get-left').click(function(){alert(new Date(timeline1.getLeftTime()));});
-      $('#get-right').click(function(){alert(new Date(timeline1.getRightTime()));});
 
       var timeline2 = new Chronoline(document.getElementById("target2"), events,
         {visibleSpan: DAY_IN_MILLISECONDS * 91,
@@ -100,7 +110,8 @@
       labelInterval: isFifthDay,
       hashInterval: isFifthDay,
       scrollLeft: prevMonth,
-      scrollRight: nextMonth
+      scrollRight: nextMonth,
+      markToday: 'labelBox'
       });
 
       var timeline3 = new Chronoline(document.getElementById("target3"), events,

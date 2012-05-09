@@ -99,26 +99,28 @@ function Chronoline(domElement, events, options) {
 
 	hashColor: '#b8b8b8',
 
-        eventAttrs: {
+        eventAttrs: {  // attrs for the bars and circles of the events
             fill: '#0055e1',
             stroke: '#0055e1',
             "stroke-width": 2
         },
 
-        hashInterval: null,
-        labelInterval: null,
-        labelFormat: '%d',
+        // predefined fns include: null (for daily), isFifthDay, isHalfMonth
+        hashInterval: null,  // fn: date -> boolean, if a hash should appear
+        labelInterval: null,  // fn: date -> boolean, if a hash should appear
+        labelFormat: '%d',  // based on strftime
 
-        subLabel: 'month',
+        subLabel: 'month',  // TODO generalize this code
         subLabelMargin: 2,
         subLabelAttrs: {'font-weight': 'bold'},
-        floatingSubLabels: true,
+        floatingSubLabels: true,  // whether sublabels should float into view
 
         fontAttrs: {
 	    'font-size': 10,
 	    fill: '#000000'
 	},
         scrollable: true,
+        // predefined fns include: prevMonth, nextMonth, prevQuarter, nextQuarter, backWeek, forwardWeek
         scrollLeft: backWeek,
         scrollRight: forwardWeek,
         animated: false,
@@ -138,13 +140,18 @@ function Chronoline(domElement, events, options) {
     for(var attrname in defaults){ t[attrname] = defaults[attrname];}
     for(var attrname in options){ t[attrname] = options[attrname];}
 
+    // options shouldn't be on if there aren't any sections
+    t.floatingSectionLabels &= t.sections != null;
+    t.sectionLabelsOnHover &= t.sections != null;
+
+    // HTML elements to put everything in
     t.domElement = domElement;
 
     t.wrapper = document.createElement('div');
     t.wrapper.className = 'chronoline-wrapper';
     t.domElement.appendChild(t.wrapper);
 
-    // SORT THE DATES SO I CAN POSITION THEM
+    // SORT EVENTS
     t.sortEvents = function(a, b){
         a = a[0];
         b = b[0];
@@ -157,7 +164,7 @@ function Chronoline(domElement, events, options) {
         return a[0].getTime() - b[0].getTime();
     };
 
-    // need to get them to UTC
+    // need to convert dates to UTC
     for(var i = 0; i < events.length; i++){
         for(var j = 0; j < events[i][0].length; j++){
             stripTime(events[i][0][j]);
@@ -166,6 +173,7 @@ function Chronoline(domElement, events, options) {
     t.events = events;
     t.events.sort(t.sortEvents);
 
+    // same thing for sections
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
             for(var j = 0; j < t.sections[i][0].length; j++){
@@ -177,10 +185,12 @@ function Chronoline(domElement, events, options) {
 
 
     // CALCULATING MORE THINGS
+    // creating canvas pieces
     t.myCanvas = document.createElement('div');
     t.myCanvas.className = 'chronoline-canvas';
     t.wrapper.appendChild(t.myCanvas);
 
+    // generating relevant dates
     t.today = new Date(Date.now());
     stripTime(t.today);
 
@@ -212,20 +222,19 @@ function Chronoline(domElement, events, options) {
     t.endDate = new Date(t.endDate.getTime() + 86400000);
     stripTime(t.endDate);
 
-    // this ratio converts a time into a pixel position
+    // this ratio converts a time into a px position
     t.visibleWidth = t.wrapper.clientWidth;
-    t.pixelRatio = t.visibleWidth / t.visibleSpan;
-    t.totalWidth = t.pixelRatio * (t.endDate.getTime() - t.startDate.getTime());
-    t.maxLeftPixel = t.totalWidth - t.visibleWidth;
+    t.pxRatio = t.visibleWidth / t.visibleSpan;
+    t.totalWidth = t.pxRatio * (t.endDate.getTime() - t.startDate.getTime());
+    t.maxLeftPx = t.totalWidth - t.visibleWidth;
 
-    t.pixelToMs = function(pixel){
-        return t.startTime + pixel / t.pixelRatio;
+    // 2 handy utility functions
+    t.pxToMs = function(px){
+        return t.startTime + px / t.pxRatio;
     }
-    t.msToPixel = function(ms){
-        return (ms - t.startTime) * t.pixelRatio;
+    t.msToPx = function(ms){
+        return (ms - t.startTime) * t.pxRatio;
     }
-
-    t.circleRadius = t.eventHeight / 2;
 
     // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
     // TODO
@@ -233,28 +242,31 @@ function Chronoline(domElement, events, options) {
     // it at least needs to find the latest row that still fits
     // this, however, may cause very strange behavior (everything being on the 2nd line),
     // so I'm going to prefer this in the short term
+
+    // calculated here so it can be used in splitting dates
+    t.circleRadius = t.eventHeight / 2;
+
     t.eventRows = [[]];
-    t.rowLastPixels = [0];
+    t.rowLastPxs = [0];
 
     for(var i = 0; i < t.events.length; i++){
         var found = false;
-        var startPixel = t.msToPixel(t.events[i][0][0].getTime()) - t.circleRadius;
+        var startPx = t.msToPx(t.events[i][0][0].getTime()) - t.circleRadius;
         for(var j = 0; j < t.eventRows.length; j++){
-            if(t.rowLastPixels[j] < startPixel){
+            if(t.rowLastPxs[j] < startPx){
                 t.eventRows[j].push(t.events[i]);
-                t.rowLastPixels[j] = t.msToPixel(getEndDate(t.events[i][0]).getTime()) + t.circleRadius;
+                t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i][0]).getTime()) + t.circleRadius;
                 found = true;
                 break;
             }
         }
         if(!found){
             t.eventRows.push([t.events[i]]);
-            t.rowLastPixels.push(t.msToPixel(getEndDate(t.events[i][0]).getTime()) + t.circleRadius);
+            t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i][0]).getTime()) + t.circleRadius);
         }
     }
 
     // a few more calculations and creation
-
     t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
     t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
 
@@ -268,8 +280,8 @@ function Chronoline(domElement, events, options) {
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
             var section = t.sections[i];
-            var startX = (section[0][0].getTime() - t.startTime) * t.pixelRatio;
-            var width = (section[0][1] - section[0][0]) * t.pixelRatio;
+            var startX = (section[0][0].getTime() - t.startTime) * t.pxRatio;
+            var width = (section[0][1] - section[0][0]) * t.pxRatio;
             var elem = t.paper.rect(startX, 0, width, t.totalHeight);
             elem.attr('stroke-width', 0);
             elem.attr('stroke', '#ffffff');
@@ -279,6 +291,7 @@ function Chronoline(domElement, events, options) {
             sectionLabel.attr('text-anchor', 'start');
             sectionLabel.attr(t.sectionLabelAttrs);
             if(t.floatingSectionLabels){
+                // bounds determine how far things can float
                 sectionLabel.data('left-bound', startX + 10);
                 sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
                 t.floatingSet.push(sectionLabel);
@@ -296,6 +309,7 @@ function Chronoline(domElement, events, options) {
         }
     }
 
+    // put all of these in front of the sections
     t.sectionLabelSet.forEach(function(label){
         label.toFront();
     });
@@ -305,14 +319,16 @@ function Chronoline(domElement, events, options) {
         var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
         for(var col = 0; col < t.eventRows[row].length; col++){
             var event = t.eventRows[row][col];
-            var startX = (event[0][0].getTime() - t.startTime) * t.pixelRatio;
+            var startX = (event[0][0].getTime() - t.startTime) * t.pxRatio;
             var elem = null;
             if(event[0].length == 1){  // it's a single point
                 elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
             } else {  // it's a range
-                var width = (getEndDate(event[0]) - event[0][0]) * t.pixelRatio;
-                t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);  // left rounded corner
-                t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);  // right rounded corner
+                var width = (getEndDate(event[0]) - event[0][0]) * t.pxRatio;
+                // left rounded corner
+                t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                // right rounded corner
+                t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
@@ -339,6 +355,7 @@ function Chronoline(domElement, events, options) {
                 });
             }
             if(t.sections != null && t.sectionLabelsOnHover){
+                // some magic here to tie the event back to the section label element
                 var originalIndex = event[3];
                 var newIndex = 0;
                 for(var i = 0; i < t.sections.length; i++){
@@ -353,6 +370,7 @@ function Chronoline(domElement, events, options) {
         }
     }
 
+    // calculated ahead of time
     var dateLineY = t.totalHeight - t.dateLabelHeight;
     var baseline = t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
     baseline.attr('stroke', t.hashColor);
@@ -361,18 +379,21 @@ function Chronoline(domElement, events, options) {
     t.labelY = t.bottomHashY + t.fontAttrs['font-size'];
     t.subLabelY = t.bottomHashY + t.fontAttrs['font-size'] * 2 + t.subLabelMargin;
 
-    // date labels
+    // DATE LABELS
+    // only a helper b/c it works within a specific range
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
             var day = curDate.getUTCDate();
-            var x = t.msToPixel(curMs);
+            var x = t.msToPx(curMs);
 
+            // the little hashes
             if(t.hashInterval == null || t.hashInterval(curDate)){
             var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
 	    hash.attr('stroke', t.hashColor);
             }
 
+            // the labels directly below the hashes
             if(t.labelInterval == null || t.labelInterval(curDate)){
                 var displayDate = String(day);
                 if(displayDate.length == 1)
@@ -381,6 +402,8 @@ function Chronoline(domElement, events, options) {
                 var label = t.paper.text(x, t.labelY, displayDate);
                 label.attr(t.fontAttrs);
             }
+
+            // special markers for today
             if(t.markToday && curMs == t.today.getTime()){
                 if(t.markToday == 'labelBox'){
                     label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
@@ -396,15 +419,17 @@ function Chronoline(domElement, events, options) {
                 }
             }
 
+            // sublabels. These can float
             if(day == 1 && t.subLabel == 'month'){
                 var subLabel = t.paper.text(x, t.subLabelY, formatDate(curDate, '%b').toUpperCase());
                 subLabel.attr(t.fontAttrs);
                 subLabel.attr(t.subLabelAttrs);
                 if(t.floatingSubLabels){
+                    // bounds determine how far things can float
                     subLabel.data('left-bound', x);
                     var endOfMonth = new Date(Date.UTC(curDate.getUTCFullYear(), curDate.getUTCMonth() + 1, 0));
                     subLabel.data('right-bound',
-                                  Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio - 5,
+                                  Math.min((endOfMonth.getTime() - t.startTime) * t.pxRatio - 5,
                                            t.totalWidth));
                     t.floatingSet.push(subLabel);
                 }
@@ -412,31 +437,34 @@ function Chronoline(domElement, events, options) {
         }
     }
 
+
     t.drawnStartMs = null;
     t.drawnEndMs = null;
-    t.drawLabels = function(leftPixelPos){
-        var newStartPixel = Math.max(0, leftPixelPos - t.visibleWidth);
-        var newEndPixel = Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth);
+    // this actually draws labels. It calculates the set of labels to draw in-between
+    // what it currently has and needs to add
+    t.drawLabels = function(leftPxPos){
+        var newStartPx = Math.max(0, leftPxPos - t.visibleWidth);
+        var newEndPx = Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth);
 
-        var newStartDate = new Date(t.pixelToMs(leftPixelPos));
+        var newStartDate = new Date(t.pxToMs(leftPxPos));
         newStartDate = new Date(Date.UTC(newStartDate.getUTCFullYear(), newStartDate.getUTCMonth(), 1));
 
         var newStartMs = newStartDate.getTime();
-        var newEndDate = new Date(t.pixelToMs(Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth)));
+        var newEndDate = new Date(t.pxToMs(Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth)));
         stripTime(newEndDate);
         var newEndMs = newEndDate.getTime();
 
-        if(t.drawnStartMs == null){
+        if(t.drawnStartMs == null){  // first time
             t.drawnStartMs = newStartMs;
             t.drawnEndMs = newEndMs;
             t.drawLabelsHelper(newStartMs, newEndMs);
-        }else if(newStartMs > t.drawnEndMs){
+        }else if(newStartMs > t.drawnEndMs){  // new labels are to the right
             t.drawLabelsHelper(t.drawnEndMs, newEndMs);
             t.drawnEndMs = newEndMs;
-        }else if(newEndMs < t.drawnStartMs){
+        }else if(newEndMs < t.drawnStartMs){  // to the left
             t.drawLabelsHelper(t.drawnStartMs, newStartMs);
             t.drawnStartMs = newStartMs;
-        }else {
+        }else {  // overlap
             if(newStartMs < t.drawnStartMs){
                 t.drawLabelsHelper(newStartMs, t.drawnStartMs);
                 t.drawnStartMs = newStartMs;
@@ -449,7 +477,7 @@ function Chronoline(domElement, events, options) {
     }
 
     t.isMoving = false;
-    t.goToPixel = function(finalLeft) {
+    t.goToPx = function(finalLeft) {
         /*
           finalLeft is negative
 
@@ -465,10 +493,11 @@ function Chronoline(domElement, events, options) {
         if(t.isMoving) return;
 
         finalLeft = Math.min(finalLeft, 0);
-        finalLeft = Math.max(finalLeft, -t.maxLeftPixel);
+        finalLeft = Math.max(finalLeft, -t.maxLeftPx);
         t.drawLabels(-finalLeft);
         var left = getLeft(t.paperElem);
 
+        // hide scroll buttons if you're at the end
         if(t.scrollable){
             if(finalLeft == 0){
                 t.leftControl.style.display = 'none';
@@ -485,7 +514,7 @@ function Chronoline(domElement, events, options) {
         var movingLabels = [];
         var floatedLeft = -finalLeft + 5;
         t.floatingSet.forEach(function(label){
-            // pin to the left side
+            // pin the to the left side
             if(label.data('left-bound') < floatedLeft && label.data('right-bound') > floatedLeft) {
                 movingLabels.push([label, label.attr('x'),
                                    floatedLeft - label.attr('x') + 10]);
@@ -510,13 +539,14 @@ function Chronoline(domElement, events, options) {
                 var pos = (finalLeft - left) * progress + left;
                 elem.style.left = pos + "px";
 
+                // move the labels
                 for(var i = 0; i < movingLabels.length; i++){
                     movingLabels[i][0].attr('x', movingLabels[i][2] * progress + movingLabels[i][1]);
                 }
 
-                if (progress < 1) {
+                if (progress < 1) {  // keep going
                     requestAnimationFrame(step);
-                }else{
+                }else{  // put it in its final position
                     t.paperElem.style.left = finalLeft + "px";
                     for(var i = 0; i < movingLabels.length; i++){
                         movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
@@ -526,7 +556,7 @@ function Chronoline(domElement, events, options) {
             }
             requestAnimationFrame(step);
 
-        }else{
+        }else{  // no animation is just a shift
             t.paperElem.style.left = finalLeft + 'px';
             for(var i = 0; i < movingLabels.length; i++){
                 movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
@@ -535,24 +565,24 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToDate = function(date, position){
-        /* position is negative for left, 0 for middle, 1 for right */
+        // position is negative for left, 0 for middle, 1 for right
         if(position < 0){
-
-            t.goToPixel(-t.msToPixel(date.getTime()));
+            t.goToPx(-t.msToPx(date.getTime()));
         } else if(position > 0){
-            t.goToPixel(-t.msToPixel(date.getTime()) + t.visibleWidth);
+            t.goToPx(-t.msToPx(date.getTime()) + t.visibleWidth);
         } else {
-            t.goToPixel(-t.msToPixel(date.getTime()) + t.visibleWidth / 2);
+            t.goToPx(-t.msToPx(date.getTime()) + t.visibleWidth / 2);
         }
     }
 
     // CREATING THE NAVIGATION
+    // this is boring
     if(t.scrollable){
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
         t.leftControl.style.marginTop = t.topMargin + 'px';
         t.leftControl.onclick = function(){
-            t.goToDate(t.scrollLeft(new Date(t.pixelToMs(-getLeft(t.paperElem)))), -1);
+            t.goToDate(t.scrollLeft(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
             return false;
         };
 
@@ -569,7 +599,7 @@ function Chronoline(domElement, events, options) {
         t.rightControl.className = 'chronoline-right';
         t.rightControl.style.marginTop = t.topMargin + 'px';
         t.rightControl.onclick = function(){
-            t.goToDate(t.scrollRight(new Date(t.pixelToMs(-getLeft(t.paperElem)))), -1);
+            t.goToDate(t.scrollRight(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
             return false;
         };
 
@@ -587,13 +617,14 @@ function Chronoline(domElement, events, options) {
     };
 
     t.getLeftTime = function(){
-        return Math.floor(t.startTime - getLeft(t.paperElem) / t.pixelRatio);
+        return Math.floor(t.startTime - getLeft(t.paperElem) / t.pxRatio);
     };
 
     t.getRightTime = function(){
-        return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pixelRatio);
+        return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
 
-    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20 + 'px';
-    t.goToPixel(getLeft(t.paperElem));
+    // set the default position
+    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pxRatio + 20 + 'px';
+    t.goToPx(getLeft(t.paperElem));
 }
