@@ -73,7 +73,7 @@ function Chronoline(domElement, events, options) {
 
         fontAttrs: {
 	    'font-size': 10,
-	    fill: '#b8b8b8'
+	    fill: '#000000'
 	},
         scrollable: true,
         scrollInterval: 7,
@@ -206,8 +206,8 @@ function Chronoline(domElement, events, options) {
         for(var i = 0; i < t.sections.length; i++){
             var section = t.sections[i];
             var startX = (section[0][0].getTime() - t.startTime) * t.pixelRatio;
-            var endX = (section[0][1].getTime() - t.startTime) * t.pixelRatio;
-            var elem = t.paper.rect(startX, 0, endX, t.totalHeight);
+            var width = (section[0][1] - section[0][0]) * t.pixelRatio;
+            var elem = t.paper.rect(startX, 0, width, t.totalHeight);
             elem.attr('stroke-width', 0);
             elem.attr('fill', section[2]);
 
@@ -216,7 +216,7 @@ function Chronoline(domElement, events, options) {
             sectionLabel.attr(t.sectionLabelAttrs);
             if(t.floatingSectionLabels){
                 sectionLabel.data('left-bound', startX + 10);
-                sectionLabel.data('right-bound', endX - sectionLabel.attr('width'));
+                sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
                 t.floatingSet.push(sectionLabel);
             }
         }
@@ -287,7 +287,7 @@ function Chronoline(domElement, events, options) {
             var label = t.paper.text(x, t.labelY, displayDate);
             label.attr(t.fontAttrs);
 
-            if(t.markToday && curMs.getTime() == t.today.getTime()){
+            if(t.markToday && curMs == t.today.getTime()){
                 label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
                             'font-size': t.fontAttrs['font-size'] + 2,
                             'y': t.bottomHashY + t.fontAttrs['font-size'] + 5});
@@ -397,7 +397,9 @@ function Chronoline(domElement, events, options) {
         if(t.animated){
             t.isMoving = true;
 
-            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+              };
 
             var start = Date.now();
 
@@ -483,6 +485,6 @@ function Chronoline(domElement, events, options) {
     };
 
 
-    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20;
+    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20 + 'px';
     t.goToPixel(getLeft(t.paperElem));
 }
