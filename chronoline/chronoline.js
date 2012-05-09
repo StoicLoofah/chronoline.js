@@ -1,3 +1,5 @@
+DAY_IN_MILLISECONDS = 86400000;
+
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function stripTime(date){
@@ -38,8 +40,47 @@ function getEndDate(dateArray){
     return dateArray[dateArray.length - 1];
 }
 
+function isFifthDay(date){
+    var day = date.getDate();
+    return (day == 1 || day % 5 == 0) && day != 30;
+}
+
+function isHalfMonth(date){
+    var day = date.getDate();
+    return day == 1 || day == 15;
+}
+
+function prevMonth(date){
+    var newDate = new Date(date.getTime() - DAY_IN_MILLISECONDS);
+    return new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+}
+
+function nextMonth(date){
+    var newDate = new Date(date.getTime() + DAY_IN_MILLISECONDS);
+    return new Date(newDate.getFullYear(), newDate.getMonth() + 1, 1);
+}
+
+function prevQuarter(date){
+    var newDate = new Date(date - DAY_IN_MILLISECONDS);
+    var month = newDate.getMonth();
+    return new Date(newDate.getFullYear(), month - month % 3, 1);
+}
+
+function nextQuarter(date){
+    var newDate = new Date(date.getTime() + DAY_IN_MILLISECONDS);
+    var month = newDate.getMonth();
+    return new Date(newDate.getFullYear(), month - month % 3 + 3, 1);
+}
+
+function backWeek(date){
+    return new Date(date - DAY_IN_MILLISECONDS * 7);
+}
+
+function forwardWeek(date){
+    return new Date(date.getTime() + DAY_IN_MILLISECONDS * 7);
+}
+
 function Chronoline(domElement, events, options) {
-    DAY_IN_MILLISECONDS = 86400000;
 
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
@@ -63,12 +104,13 @@ function Chronoline(domElement, events, options) {
             stroke: '#0055e1'
         },
 
-        labelInterval: 'day',
+        hashInterval: null,
+        labelInterval: null,
         labelFormat: '%d',
 
         subLabel: 'month',
         subLabelMargin: 2,
-        subLabelAttrs: {},
+        subLabelAttrs: {'font-weight': 'bold'},
         floatingSubLabels: true,
 
         fontAttrs: {
@@ -76,15 +118,18 @@ function Chronoline(domElement, events, options) {
 	    fill: '#000000'
 	},
         scrollable: true,
-        scrollInterval: 7,
+        scrollLeft: backWeek,
+        scrollRight: forwardWeek,
         animated: false,
 
         tooltips: false,
-        markToday: false,
+        markToday: 'line',
+        todayAttrs: {'stroke': '#484848'},
 
         sections: null,
         floatingSectionLabels: true,
-        sectionLabelAttrs: {}
+        sectionLabelAttrs: {},
+        sectionLabelsOnHover: true
     }
     var t = this;
 
@@ -119,32 +164,6 @@ function Chronoline(domElement, events, options) {
     }
 
 
-    // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
-    // TODO
-    // this is a greedy algo that definitely isn't optimal
-    // it at least needs to find the latest row that still fits
-    // this, however, may cause very strange behavior (everything being on the 2nd line),
-    // so I'm going to prefer this in the short term
-    t.eventRows = [[]];
-    t.rowLastDates = [0];
-
-    for(var i = 0; i < t.events.length; i++){
-        var found = false;
-        var startTime = t.events[i][0][0].getTime();
-        for(var j = 0; j < t.eventRows.length; j++){
-            if(t.rowLastDates[j] < startTime){
-                t.eventRows[j].push(t.events[i]);
-                t.rowLastDates[j] = getEndDate(t.events[i][0]).getTime();
-                found = true;
-                break;
-            }
-        }
-        if(!found){
-            t.eventRows.push([t.events[i]]);
-            t.rowLastDates.push(getEndDate(t.events[i][0]).getTime());
-        }
-    }
-
     // CALCULATING MORE THINGS
     t.myCanvas = document.createElement('div');
     t.myCanvas.className = 'chronoline-canvas';
@@ -162,6 +181,9 @@ function Chronoline(domElement, events, options) {
 
     if(t.startDate == null){
         t.startDate = t.events[0][0][0];
+        for(var i = 1; i < t.events.length; i++)
+            if(t.events[i][0][0] < t.startDate)
+                t.startDate = t.events[i][0][0];
     }
     if(t.startDate > t.defaultStartDate)
         t.startDate = t.defaultStartDate;
@@ -179,9 +201,10 @@ function Chronoline(domElement, events, options) {
     t.endDate = new Date(t.endDate.getTime() + 86400000);
 
     // this ratio converts a time into a pixel position
-    t.pixelRatio = t.wrapper.clientWidth / t.visibleSpan;
-    t.totalWidth = t.pixelRatio * (t.endDate - t.startDate);
-    t.maxLeftPixel = t.totalWidth - t.wrapper.clientWidth;
+    t.visibleWidth = t.wrapper.clientWidth;
+    t.pixelRatio = t.visibleWidth / t.visibleSpan;
+    t.totalWidth = t.pixelRatio * (t.endDate.getTime() - t.startDate.getTime());
+    t.maxLeftPixel = t.totalWidth - t.visibleWidth;
 
     t.pixelToMs = function(pixel){
         return t.startTime + pixel / t.pixelRatio;
@@ -190,6 +213,35 @@ function Chronoline(domElement, events, options) {
         return (ms - t.startTime) * t.pixelRatio;
     }
 
+    t.circleRadius = t.eventHeight / 2;
+
+    // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
+    // TODO
+    // this is a greedy algo that definitely isn't optimal
+    // it at least needs to find the latest row that still fits
+    // this, however, may cause very strange behavior (everything being on the 2nd line),
+    // so I'm going to prefer this in the short term
+    t.eventRows = [[]];
+    t.rowLastPixels = [0];
+
+    for(var i = 0; i < t.events.length; i++){
+        var found = false;
+        var startPixel = t.msToPixel(t.events[i][0][0].getTime()) - t.circleRadius;
+        for(var j = 0; j < t.eventRows.length; j++){
+            if(t.rowLastPixels[j] < startPixel){
+                t.eventRows[j].push(t.events[i]);
+                t.rowLastPixels[j] = t.msToPixel(getEndDate(t.events[i][0]).getTime()) + t.circleRadius;
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            t.eventRows.push([t.events[i]]);
+            t.rowLastPixels.push(t.msToPixel(getEndDate(t.events[i][0]).getTime()) + t.circleRadius);
+        }
+    }
+
+    // a few more calculations and creation
 
     t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
     t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
@@ -198,8 +250,6 @@ function Chronoline(domElement, events, options) {
     t.paperElem = t.myCanvas.childNodes[0];
 
     // DRAWING
-    t.circleRadius = t.eventHeight / 2;
-
     t.floatingSet = t.paper.set();
     // drawing sections
     if(t.sections != null){
@@ -209,6 +259,7 @@ function Chronoline(domElement, events, options) {
             var width = (section[0][1] - section[0][0]) * t.pixelRatio;
             var elem = t.paper.rect(startX, 0, width, t.totalHeight);
             elem.attr('stroke-width', 0);
+            elem.attr('stroke', '#ffffff');
             elem.attr('fill', section[2]);
 
             var sectionLabel = t.paper.text(startX + 10, 10, section[1]);
@@ -219,8 +270,23 @@ function Chronoline(domElement, events, options) {
                 sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
                 t.floatingSet.push(sectionLabel);
             }
+
+            elem.data('label', sectionLabel);
+
+            if(t.sectionLabelsOnHover){
+                elem.hover(function(){this.data('label').animate({opacity: 1}, 200);},
+                           function(){this.data('label').animate({opacity: 0}, 200);});
+                sectionLabel.attr('opacity', 0);
+            }
+
         }
     }
+
+    // THIS ASSUMES THAT OTHER CONTENT HAS NOT BEEN ADDED YET. IT"S A HACK
+    t.floatingSet.forEach(function(label){
+        label.toFront();
+    });
+
 
     // drawing events
     for(var row = 0; row < t.eventRows.length; row++){
@@ -275,26 +341,35 @@ function Chronoline(domElement, events, options) {
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
+            var day = curDate.getDate();
             var x = t.msToPixel(curMs);
+
+            if(t.hashInterval == null || t.hashInterval(curDate)){
             var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
 	    hash.attr('stroke', t.hashColor);
+            }
 
-            var day = curDate.getDate();
-            var displayDate = String(day);
-            if(displayDate.length == 1)
-                displayDate = '0' + displayDate;
+            if(t.labelInterval == null || t.labelInterval(curDate)){
+                var displayDate = String(day);
+                if(displayDate.length == 1)
+                    displayDate = '0' + displayDate;
 
-            var label = t.paper.text(x, t.labelY, displayDate);
-            label.attr(t.fontAttrs);
-
+                var label = t.paper.text(x, t.labelY, displayDate);
+                label.attr(t.fontAttrs);
+            }
             if(t.markToday && curMs == t.today.getTime()){
-                label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
-                            'font-size': t.fontAttrs['font-size'] + 2,
-                            'y': t.bottomHashY + t.fontAttrs['font-size'] + 5});
-                var bbox = label.getBBox();
-                var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
-                labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
-                labelBox.insertBefore(label);
+                if(t.markToday == 'labelBox'){
+                    label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
+                                'font-size': t.fontAttrs['font-size'] + 2,
+                                'y': t.bottomHashY + t.fontAttrs['font-size'] + 5});
+                    var bbox = label.getBBox();
+                    var labelBox = t.paper.rect(bbox.x - 2, bbox.y - 2, bbox.width + 4, bbox.height + 4);
+                    labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
+                    labelBox.insertBefore(label);
+                }else if(t.markToday == 'line'){
+                    var line = t.paper.path('M' + x + ',0L' + x + ',' + dateLineY);
+                    line.attr(t.todayAttrs);
+                }
             }
 
             if(day == 1 && t.subLabel == 'month'){
@@ -316,15 +391,17 @@ function Chronoline(domElement, events, options) {
     t.drawnStartMs = null;
     t.drawnEndMs = null;
     t.drawLabels = function(leftPixelPos){
-        var newStartPixel = Math.max(0, leftPixelPos - t.wrapper.clientWidth);
-        var newEndPixel = Math.min(t.totalWidth, leftPixelPos + 2 * t.wrapper.clientWidth);
+        var newStartPixel = Math.max(0, leftPixelPos - t.visibleWidth);
+        var newEndPixel = Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth);
 
         var newStartDate = new Date(t.pixelToMs(leftPixelPos));
         newStartDate = new Date(newStartDate.getFullYear(), newStartDate.getMonth(), 1);
+        console.debug(newStartDate);
 
         var newStartMs = newStartDate.getTime();
-        var newEndDate = new Date(t.pixelToMs(Math.min(t.totalWidth, leftPixelPos + 2 * t.wrapper.clientWidth)));
+        var newEndDate = new Date(t.pixelToMs(Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth)));
         stripTime(newEndDate);
+        console.debug(newEndDate);
         var newEndMs = newEndDate.getTime();
 
         if(t.drawnStartMs == null){
@@ -352,6 +429,8 @@ function Chronoline(domElement, events, options) {
     t.isMoving = false;
     t.goToPixel = function(finalLeft) {
         /*
+          finalLeft is negative
+
           I tried several implementations here, including:
           - moving the left of the canvas within a wrapper (current strategy)
           - animating setViewbox using getAnimationFrame
@@ -363,9 +442,9 @@ function Chronoline(domElement, events, options) {
          */
         if(t.isMoving) return;
 
-        t.drawLabels(-finalLeft);
         finalLeft = Math.min(finalLeft, 0);
         finalLeft = Math.max(finalLeft, -t.maxLeftPixel);
+        t.drawLabels(-finalLeft);
         var left = getLeft(t.paperElem);
 
         if(t.scrollable){
@@ -374,7 +453,7 @@ function Chronoline(domElement, events, options) {
             } else {
                 t.leftControl.style.display = '';
             }
-            if(finalLeft == t.wrapper.clientWidth - t.totalWidth){
+            if(finalLeft == t.visibleWidth - t.totalWidth){
                 t.rightControl.style.display = 'none';
             } else {
                 t.rightControl.style.display = '';
@@ -431,18 +510,27 @@ function Chronoline(domElement, events, options) {
                 movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
             }
         }
+    }
 
+    t.goToDate = function(date, position){
+        /* position is negative for left, 0 for middle, 1 for right */
+        if(position < 0){
+
+            t.goToPixel(-t.msToPixel(date.getTime()));
+        } else if(position > 0){
+            t.goToPixel(-t.msToPixel(date.getTime()) + t.visibleWidth);
+        } else {
+            t.goToPixel(-t.msToPixel(date.getTime()) + t.visibleWidth / 2);
+        }
     }
 
     // CREATING THE NAVIGATION
     if(t.scrollable){
-        t.scrollDistance = t.scrollInterval * DAY_IN_MILLISECONDS * t.pixelRatio;
-
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
         t.leftControl.style.marginTop = t.topMargin + 'px';
         t.leftControl.onclick = function(){
-            t.goToPixel(getLeft(t.paperElem) + t.scrollDistance);
+            t.goToDate(t.scrollLeft(new Date(t.pixelToMs(-getLeft(t.paperElem)))), -1);
             return false;
         };
 
@@ -459,7 +547,7 @@ function Chronoline(domElement, events, options) {
         t.rightControl.className = 'chronoline-right';
         t.rightControl.style.marginTop = t.topMargin + 'px';
         t.rightControl.onclick = function(){
-            t.goToPixel(getLeft(t.paperElem) - t.scrollDistance);
+            t.goToDate(t.scrollRight(new Date(t.pixelToMs(-getLeft(t.paperElem)))), -1);
             return false;
         };
 
@@ -473,7 +561,7 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToToday = function(){
-        t.goToPixel(-(t.today.getTime() - t.startTime) * t.pixelRatio + t.wrapper.clientWidth / 2);
+        t.goToDate(t.today, 0);
     };
 
     t.getLeftTime = function(){
@@ -481,9 +569,8 @@ function Chronoline(domElement, events, options) {
     };
 
     t.getRightTime = function(){
-        return Math.floor(t.startTime - (getLeft(t.paperElem) - t.wrapper.clientWidth) / t.pixelRatio);
+        return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pixelRatio);
     };
-
 
     t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pixelRatio + 20 + 'px';
     t.goToPixel(getLeft(t.paperElem));
