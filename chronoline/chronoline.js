@@ -3,10 +3,10 @@ DAY_IN_MILLISECONDS = 86400000;
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function stripTime(date){
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    date.setUTCHours(0);
+    date.setUTCMinutes(0);
+    date.setUTCSeconds(0);
+    date.setUTCMilliseconds(0);
 }
 
 function formatDate(date, formatString){
@@ -15,17 +15,17 @@ function formatDate(date, formatString){
     // note that this also doesn't escape things properly. sorry
     var ret = formatString;
     if(formatString.indexOf('%d') != -1){
-        var dateNum = date.getDate().toString();
+        var dateNum = date.getUTCDate().toString();
         if(dateNum.length < 2)
             dateNum = '0' + dateNum;
         ret = ret.replace('%d', dateNum);
     }
     if(formatString.indexOf('%b') != -1){
-        var month = monthNames[date.getMonth()].substring(0, 3);
+        var month = monthNames[date.getUTCMonth()].substring(0, 3);
         ret = ret.replace('%b', month);
     }
     if(formatString.indexOf('%Y') != -1){
-        ret = ret.replace('%Y', date.getFullYear());
+        ret = ret.replace('%Y', date.getUTCFullYear());
     }
 
     return ret;
@@ -41,35 +41,35 @@ function getEndDate(dateArray){
 }
 
 function isFifthDay(date){
-    var day = date.getDate();
+    var day = date.getUTCDate();
     return (day == 1 || day % 5 == 0) && day != 30;
 }
 
 function isHalfMonth(date){
-    var day = date.getDate();
+    var day = date.getUTCDate();
     return day == 1 || day == 15;
 }
 
 function prevMonth(date){
     var newDate = new Date(date.getTime() - DAY_IN_MILLISECONDS);
-    return new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+    return new Date(Date.UTC(newDate.getUTCFullYear(), newDate.getUTCMonth(), 1));
 }
 
 function nextMonth(date){
     var newDate = new Date(date.getTime() + DAY_IN_MILLISECONDS);
-    return new Date(newDate.getFullYear(), newDate.getMonth() + 1, 1);
+    return new Date(Date.UTC(newDate.getUTCFullYear(), newDate.getUTCMonth() + 1, 1));
 }
 
 function prevQuarter(date){
     var newDate = new Date(date - DAY_IN_MILLISECONDS);
     var month = newDate.getMonth();
-    return new Date(newDate.getFullYear(), month - month % 3, 1);
+    return new Date(Date.UTC(newDate.getUTCFullYear(), month - month % 3, 1));
 }
 
 function nextQuarter(date){
     var newDate = new Date(date.getTime() + DAY_IN_MILLISECONDS);
-    var month = newDate.getMonth();
-    return new Date(newDate.getFullYear(), month - month % 3 + 3, 1);
+    var month = newDate.getUTCMonth();
+    return new Date(Date.UTC(newDate.getUTCFullYear(), month - month % 3 + 3, 1));
 }
 
 function backWeek(date){
@@ -101,7 +101,8 @@ function Chronoline(domElement, events, options) {
 
         eventAttrs: {
             fill: '#0055e1',
-            stroke: '#0055e1'
+            stroke: '#0055e1',
+            "stroke-width": 2
         },
 
         hashInterval: null,
@@ -143,8 +144,6 @@ function Chronoline(domElement, events, options) {
     t.wrapper.className = 'chronoline-wrapper';
     t.domElement.appendChild(t.wrapper);
 
-    t.events = events;
-
     // SORT THE DATES SO I CAN POSITION THEM
     t.sortEvents = function(a, b){
         a = a[0];
@@ -158,8 +157,21 @@ function Chronoline(domElement, events, options) {
         return a[0].getTime() - b[0].getTime();
     };
 
+    // need to get them to UTC
+    for(var i = 0; i < events.length; i++){
+        for(var j = 0; j < events[i][0].length; j++){
+            stripTime(events[i][0][j]);
+        }
+    }
+    t.events = events;
     t.events.sort(t.sortEvents);
+
     if(t.sections != null){
+        for(var i = 0; i < t.sections.length; i++){
+            for(var j = 0; j < t.sections[i][0].length; j++){
+                stripTime(t.sections[i][0][j]);
+            }
+        }
         t.sections.sort(t.sortEvents);
     }
 
@@ -170,10 +182,7 @@ function Chronoline(domElement, events, options) {
     t.wrapper.appendChild(t.myCanvas);
 
     t.today = new Date(Date.now());
-    t.today.setHours(0);
-    t.today.setMinutes(0);
-    t.today.setSeconds(0);
-    t.today.setMilliseconds(0);
+    stripTime(t.today);
 
     if(t.defaultStartDate == null){
         t.defaultStartDate = t.today;
@@ -185,6 +194,8 @@ function Chronoline(domElement, events, options) {
             if(t.events[i][0][0] < t.startDate)
                 t.startDate = t.events[i][0][0];
     }
+    stripTime(t.startDate);
+
     if(t.startDate > t.defaultStartDate)
         t.startDate = t.defaultStartDate;
     t.startDate = new Date(t.startDate.getTime() - 86400000);
@@ -199,6 +210,7 @@ function Chronoline(domElement, events, options) {
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
     t.endDate = new Date(t.endDate.getTime() + 86400000);
+    stripTime(t.endDate);
 
     // this ratio converts a time into a pixel position
     t.visibleWidth = t.wrapper.clientWidth;
@@ -341,7 +353,7 @@ function Chronoline(domElement, events, options) {
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
-            var day = curDate.getDate();
+            var day = curDate.getUTCDate();
             var x = t.msToPixel(curMs);
 
             if(t.hashInterval == null || t.hashInterval(curDate)){
@@ -378,7 +390,7 @@ function Chronoline(domElement, events, options) {
                 subLabel.attr(t.subLabelAttrs);
                 if(t.floatingSubLabels){
                     subLabel.data('left-bound', x);
-                    var endOfMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0);
+                    var endOfMonth = new Date(Date.UTC(curDate.getUTCFullYear(), curDate.getUTCMonth() + 1, 0));
                     subLabel.data('right-bound',
                                   Math.min((endOfMonth.getTime() - t.startTime) * t.pixelRatio - 5,
                                            t.totalWidth));
@@ -395,13 +407,11 @@ function Chronoline(domElement, events, options) {
         var newEndPixel = Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth);
 
         var newStartDate = new Date(t.pixelToMs(leftPixelPos));
-        newStartDate = new Date(newStartDate.getFullYear(), newStartDate.getMonth(), 1);
-        console.debug(newStartDate);
+        newStartDate = new Date(Date.UTC(newStartDate.getUTCFullYear(), newStartDate.getUTCMonth(), 1));
 
         var newStartMs = newStartDate.getTime();
         var newEndDate = new Date(t.pixelToMs(Math.min(t.totalWidth, leftPixelPos + 2 * t.visibleWidth)));
         stripTime(newEndDate);
-        console.debug(newEndDate);
         var newEndMs = newEndDate.getTime();
 
         if(t.drawnStartMs == null){
