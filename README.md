@@ -1,7 +1,7 @@
 chronoline.js
 =============
 
-chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.
+chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. You can see a demo at http://stoicloofah.github.com/chronoline.js/
 
 Currently, chronoline.js only requires raphael.js to function. jQuery/qTip2 are used to provide nicer tooltips, but these aren't required.
 
@@ -13,20 +13,19 @@ Usage
 -----
 See the example for actual use. At its core, chronoline.js requires an element to land in and events.
 ```javascript
-// events are in an array and are each represented with an array laid out as
-// [ [STARTDATE, ENDDATE_OPTIONAL], TOOLTIP_TITLE_STRING, TOOLTIP_DESCRIPTION_OPTIONAL, SECTION_ID_OPTIONAL ]
+// events are in an associative array that require at least an array of dates (possibly only 1 element) and title.
 var events = [
-[[new Date(2011, 2, 31)], "2011 Season Opener", "", 0],
-[[new Date(2012, 1, 29)], "Spring Training Begins", "", 2],
-[[new Date(2012, 3, 9), new Date(2012, 3, 11)], "Atlanta Braves @ Houston Astros", "", 1]
+{dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0},
+{dates: [new Date(2012, 1, 29)], title: "Spring Training Begins", section: 2},
+{dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1}
 ];
 
 var timeline = new Chronoline(document.getElementById("target1"), events, {});
 ```
 
-Other thoughts:
-* sections are optional but fairly helpful. You likely will also want to provide a unique section id for each section and also label the events according to which section they belong to
-
+Optional parameters
+* section: Give ids to your sections as well, and it'll link events and sections. Currently, this is only being used to correct hover states, but there may be more functionality in the future
+* attrs: if you have any specific raphael.js attrs that you want
 
 Implementation notes
 --------------------
@@ -44,7 +43,7 @@ I mostly don't know what versions of various components are required. So far, I 
 * qTip2: 04/24/12 nightly
 
 Browser support is:
-* Internet Explorer 8+
+* Internet Explorer 8+ (except the tooltips)
 * Firefox 12+
 * Chrome 18+
 

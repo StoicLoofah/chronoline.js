@@ -159,8 +159,8 @@ function Chronoline(domElement, events, options) {
 
     // SORT EVENTS
     t.sortEvents = function(a, b){
-        a = a[0];
-        b = b[0];
+        a = a.dates;
+        b = b.dates;
 
         var aEnd = a[a.length - 1].getTime();
         var bEnd = b[b.length - 1].getTime();
@@ -172,8 +172,8 @@ function Chronoline(domElement, events, options) {
 
     // need to convert dates to UTC
     for(var i = 0; i < events.length; i++){
-        for(var j = 0; j < events[i][0].length; j++){
-            stripTime(events[i][0][j]);
+        for(var j = 0; j < events[i].dates.length; j++){
+            stripTime(events[i].dates[j]);
         }
     }
     t.events = events;
@@ -182,8 +182,8 @@ function Chronoline(domElement, events, options) {
     // same thing for sections
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
-            for(var j = 0; j < t.sections[i][0].length; j++){
-                stripTime(t.sections[i][0][j]);
+            for(var j = 0; j < t.sections[i].dates.length; j++){
+                stripTime(t.sections[i].dates[j]);
             }
         }
         t.sections.sort(t.sortEvents);
@@ -205,10 +205,10 @@ function Chronoline(domElement, events, options) {
     }
 
     if(t.startDate == null){
-        t.startDate = t.events[0][0][0];
+        t.startDate = t.events[0].dates[0];
         for(var i = 1; i < t.events.length; i++)
-            if(t.events[i][0][0] < t.startDate)
-                t.startDate = t.events[i][0][0];
+            if(t.events[i].dates[0] < t.startDate)
+                t.startDate = t.events[i].dates[0];
     }
     stripTime(t.startDate);
 
@@ -218,10 +218,10 @@ function Chronoline(domElement, events, options) {
     t.startTime = t.startDate.getTime();
 
     if(t.endDate == null){
-        t.endDate = getEndDate(t.events[0][0]);
+        t.endDate = getEndDate(t.events[0].dates);
         for(var i = 1; i < t.events.length; i++)
-            if(getEndDate(t.events[i][0]) > t.endDate)
-                t.endDate = getEndDate(t.events[i][0]);
+            if(getEndDate(t.events[i].dates) > t.endDate)
+                t.endDate = getEndDate(t.events[i].dates);
     }
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
@@ -257,18 +257,18 @@ function Chronoline(domElement, events, options) {
 
     for(var i = 0; i < t.events.length; i++){
         var found = false;
-        var startPx = t.msToPx(t.events[i][0][0].getTime()) - t.circleRadius;
+        var startPx = t.msToPx(t.events[i].dates[0].getTime()) - t.circleRadius;
         for(var j = 0; j < t.eventRows.length; j++){
             if(t.rowLastPxs[j] < startPx){
                 t.eventRows[j].push(t.events[i]);
-                t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i][0]).getTime()) + t.circleRadius;
+                t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius;
                 found = true;
                 break;
             }
         }
         if(!found){
             t.eventRows.push([t.events[i]]);
-            t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i][0]).getTime()) + t.circleRadius);
+            t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius);
         }
     }
 
@@ -286,14 +286,15 @@ function Chronoline(domElement, events, options) {
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
             var section = t.sections[i];
-            var startX = (section[0][0].getTime() - t.startTime) * t.pxRatio;
-            var width = (section[0][1] - section[0][0]) * t.pxRatio;
+            var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
+            var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
             var elem = t.paper.rect(startX, 0, width, t.totalHeight);
             elem.attr('stroke-width', 0);
             elem.attr('stroke', '#ffffff');
-            elem.attr('fill', section[2]);
-
-            var sectionLabel = t.paper.text(startX + 10, 10, section[1]);
+            if(typeof section.attrs != "undefined"){
+                elem.attr(section.attrs);
+            }
+            var sectionLabel = t.paper.text(startX + 10, 10, section.title);
             sectionLabel.attr('text-anchor', 'start');
             sectionLabel.attr(t.sectionLabelAttrs);
             if(t.floatingSectionLabels){
@@ -327,29 +328,46 @@ function Chronoline(domElement, events, options) {
         var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
         for(var col = 0; col < t.eventRows[row].length; col++){
             var event = t.eventRows[row][col];
-            var startX = (event[0][0].getTime() - t.startTime) * t.pxRatio;
+            var startX = (event.dates[0].getTime() - t.startTime) * t.pxRatio;
             var elem = null;
-            if(event[0].length == 1){  // it's a single point
+            if(event.dates.length == 1){  // it's a single point
                 elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
             } else {  // it's a range
-                var width = (getEndDate(event[0]) - event[0][0]) * t.pxRatio;
+                var width = (getEndDate(event.dates) - event.dates[0]) * t.pxRatio;
                 // left rounded corner
-                t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                var leftCircle = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                if(typeof event.attrs != "undefined"){
+                    leftCircle.attr(event.attrs);
+                }
                 // right rounded corner
-                t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                if(typeof event.attrs != "undefined"){
+                    rightCircle.attr(event.attrs);
+                }
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
-            elem.attr('title', event[1]);
-            if(t.tooltips){
-                $(elem.node).parent().qtip({
+           if(typeof event.attrs != "undefined"){
+                elem.attr(event.attrs);
+            }
+
+            elem.attr('title', event.title);
+            if(t.tooltips && !jQuery.browser.msie){
+                var description = event.description;
+                var title = event.title;
+                if(typeof description == "undefined" || description == ''){
+                    description = title;
+                    title = '';
+                }
+                jQuery(elem.node).parent().qtip({
                     content: {
-                        title: event[2]
+                        title: title,
+                        text: description
                     },
                     position: {
 			my: 'top left',
 			target: 'mouse',
-			viewport: $(window), // Keep it on-screen at all times if possible
+			viewport: jQuery(window), // Keep it on-screen at all times if possible
 			adjust: {
 			    x: 10,  y: 10
 			}
@@ -364,16 +382,18 @@ function Chronoline(domElement, events, options) {
             }
             if(t.sections != null && t.sectionLabelsOnHover){
                 // some magic here to tie the event back to the section label element
-                var originalIndex = event[3];
-                var newIndex = 0;
-                for(var i = 0; i < t.sections.length; i++){
-                    if(t.sections[i][3] == originalIndex){
-                        elem.data('sectionLabel', t.sectionLabelSet[i]);
-                        break;
+                var originalIndex = event.section;
+                if(typeof originalIndex != "undefined"){
+                    var newIndex = 0;
+                    for(var i = 0; i < t.sections.length; i++){
+                        if(t.sections[i].section == originalIndex){
+                            elem.data('sectionLabel', t.sectionLabelSet[i]);
+                            break;
+                        }
                     }
+                    elem.hover(function(){this.data('sectionLabel').animate({opacity: 1}, 200);},
+                               function(){this.data('sectionLabel').animate({opacity: 0}, 200);});
                 }
-                elem.hover(function(){this.data('sectionLabel').animate({opacity: 1}, 200);},
-                           function(){this.data('sectionLabel').animate({opacity: 0}, 200);});
             }
         }
     }
