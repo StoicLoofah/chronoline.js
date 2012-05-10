@@ -1,17 +1,19 @@
 .chronoline-canvas {
     overflow: hidden;
     position: relative;
+    width: 100%;
 }
 .chronoline-canvas > svg {
     position: relative;
 }
-.chronoline-wrapper:hover .chronoline-left,
-.chronoline-wrapper:hover .chronoline-right {
+.chronoline-wrapper:hover > .chronoline-left,
+.chronoline-wrapper:hover > .chronoline-right {
     display: block;
 }
 .chronoline-left,
 .chronoline-right {
     display: none;
+    *display: block;
     top: 0;
     position: absolute;
     width: 20px;
@@ -28,7 +30,7 @@
 }
 .chronoline-left {
     left: 0;
-    }
+}
 .chronoline-right {
     right: 0;
 }

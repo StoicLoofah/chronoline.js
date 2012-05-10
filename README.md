@@ -36,6 +36,18 @@ Implementation notes
 * all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways
 * labels and hashes are only drawn as necessary. There are some pretty severe performance concerns (at least in FF in Ubuntu)
 
+Support
+-------
+I mostly don't know what versions of various components are required. So far, I have used:
+* raphael.js: 2.1.0
+* jQuery: 1.7.2
+* qTip2: 04/24/12 nightly
+
+Browser support is:
+* Internet Explorer 8+
+* Firefox 12+
+* Chrome 18+
+
 Credits
 -------
 * Built by and for [Zanbato](https://zanbato.com). [Ping us](https://zanbato.com/careers/) if you're interested in working with us!

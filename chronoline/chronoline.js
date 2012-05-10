@@ -1,3 +1,9 @@
+if (!Date.now) {
+    Date.now = function now() {
+        return +(new Date);
+    };
+}
+
 DAY_IN_MILLISECONDS = 86400000;
 
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -223,7 +229,7 @@ function Chronoline(domElement, events, options) {
     stripTime(t.endDate);
 
     // this ratio converts a time into a px position
-    t.visibleWidth = t.wrapper.clientWidth;
+    t.visibleWidth = t.domElement.clientWidth;
     t.pxRatio = t.visibleWidth / t.visibleSpan;
     t.totalWidth = t.pxRatio * (t.endDate.getTime() - t.startDate.getTime());
     t.maxLeftPx = t.totalWidth - t.visibleWidth;
@@ -303,6 +309,8 @@ function Chronoline(domElement, events, options) {
             if(t.sectionLabelsOnHover){
                 elem.hover(function(){this.data('label').animate({opacity: 1}, 200);},
                            function(){this.data('label').animate({opacity: 0}, 200);});
+		sectionLabel.hover(function(){this.animate({opacity: 1}, 200);},
+                                   function(){this.animate({opacity: 0}, 200);});
                 sectionLabel.attr('opacity', 0);
             }
 
@@ -350,7 +358,7 @@ function Chronoline(domElement, events, options) {
 			fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
 		    },
                     style: {
-                        classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded',
+                        classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded'
                     }
                 });
             }
@@ -389,8 +397,8 @@ function Chronoline(domElement, events, options) {
 
             // the little hashes
             if(t.hashInterval == null || t.hashInterval(curDate)){
-            var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
-	    hash.attr('stroke', t.hashColor);
+                var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
+	        hash.attr('stroke', t.hashColor);
             }
 
             // the labels directly below the hashes
@@ -489,7 +497,7 @@ function Chronoline(domElement, events, options) {
           - animating floating content using getAnimation (current strategy)
           - animating floating content using raphael.animate
           This solution is by far the smoothest and doesn't have any asynchrony problems. There's some twitching going on with floating content, but it's not THAT bad
-         */
+        */
         if(t.isMoving) return;
 
         finalLeft = Math.min(finalLeft, 0);
@@ -520,16 +528,16 @@ function Chronoline(domElement, events, options) {
                                    floatedLeft - label.attr('x') + 10]);
             } else if(label.attr('x') != label.data('left-bound')) { // push it to where it should be
                 movingLabels.push([label, label.attr('x'),
-                    label.data('left-bound') - label.attr('x')]);
+                                   label.data('left-bound') - label.attr('x')]);
             }
         });
 
         if(t.animated){
             t.isMoving = true;
 
-            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback ){
-                window.setTimeout(callback, 1000 / 60);
-              };
+            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback, element){
+                return window.setTimeout(function(){callback(+new Date());}, 1000 / 60);
+            };
 
             var start = Date.now();
 
