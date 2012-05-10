@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Chronoline.js : chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Chronoline.js</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/StoicLoofah/chronoline.js">View on GitHub</a>
+
+          <h1 id="project_title">Chronoline.js</h1>
+          <h2 id="project_tagline">chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/StoicLoofah/chronoline.js/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/StoicLoofah/chronoline.js/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>chronoline.js</h1>
+
+<p>chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. You can see a demo at <a href="http://stoicloofah.github.com/chronoline.js/">http://stoicloofah.github.com/chronoline.js/</a></p>
+
+<p>Currently, chronoline.js only requires raphael.js to function. jQuery/qTip2 are used to provide nicer tooltips, but these aren't required.</p>
+
+<p>To use it, provide a target element and an array of dates (possible ranges) with event descriptions, and it will render the contents of the timeline.</p>
+
+<p>There are a variety of options provided, which you can see in the JavaScript itself. They are currently (and will likely always be) quite idiosyncratic and represent the degrees of control needed for the projects this has been used for.</p>
+
+<h2>Usage</h2>
+
+<p>See the example for actual use. At its core, chronoline.js requires an element to land in and events.</p>
+
+<div class="highlight">
+<pre><span class="c1">// events are in an associative array that require at least an array of dates (possibly only 1 element) and title.</span>
+<span class="kd">var</span> <span class="nx">events</span> <span class="o">=</span> <span class="p">[</span>
+<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2011</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">31</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"2011 Season Opener"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">0</span><span class="p">},</span>
+<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">29</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"Spring Training Begins"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">2</span><span class="p">},</span>
+<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"Atlanta Braves @ Houston Astros"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="p">];</span>
+
+<span class="kd">var</span> <span class="nx">timeline</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Chronoline</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"target1"</span><span class="p">),</span> <span class="nx">events</span><span class="p">,</span> <span class="p">{});</span>
+</pre>
+</div>
+
+
+<p>Optional parameters</p>
+
+<ul>
+<li>section: Give ids to your sections as well, and it'll link events and sections. Currently, this is only being used to correct hover states, but there may be more functionality in the future</li>
+<li>attrs: if you have any specific raphael.js attrs that you want</li>
+</ul><h2>Implementation notes</h2>
+
+<ul>
+<li>"px" is for pixels, "ms" is for milliseconds. Time is tracked by milliseconds (as Dates do in JS), and this is converted into pixels to be displayed</li>
+<li>most aesthetics are options. Much other functionality can be modified by providing functions, such as the scrolling intervals</li>
+<li>the smallest resolution you can get is days. In fact, all time information is stripped out of incoming dates</li>
+<li>all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways</li>
+<li>labels and hashes are only drawn as necessary. There are some pretty severe performance concerns (at least in FF in Ubuntu)</li>
+</ul><h2>Support</h2>
+
+<p>I mostly don't know what versions of various components are required. So far, I have used:</p>
+
+<ul>
+<li>raphael.js: 2.1.0</li>
+<li>jQuery: 1.7.2</li>
+<li>qTip2: 04/24/12 nightly</li>
+</ul><p>Browser support is:</p>
+
+<ul>
+<li>Internet Explorer 8+ (except the tooltips)</li>
+<li>Firefox 12+</li>
+<li>Chrome 18+</li>
+</ul><h2>Credits</h2>
+
+<ul>
+<li>Built by and for <a href="https://zanbato.com">Zanbato</a>. <a href="https://zanbato.com/careers/">Ping us</a> if you're interested in working with us!</li>
+<li>Developed by <a href="http://kevinleung.com">Kevin Leung</a>
+</li>
+<li>Designed by <a href="http://twitter.com/#!/denykhoung">Deny Khoung</a>
+</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Chronoline.js maintained by <a href="https://github.com/StoicLoofah">StoicLoofah</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
