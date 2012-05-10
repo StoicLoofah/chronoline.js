@@ -490,7 +490,7 @@ function Chronoline(domElement, events, options) {
             t.drawLabelsHelper(t.drawnEndMs, newEndMs);
             t.drawnEndMs = newEndMs;
         }else if(newEndMs < t.drawnStartMs){  // to the left
-            t.drawLabelsHelper(t.drawnStartMs, newStartMs);
+            t.drawLabelsHelper(newStartMs, t.drawnStartMs);
             t.drawnStartMs = newStartMs;
         }else {  // overlap
             if(newStartMs < t.drawnStartMs){
@@ -594,6 +594,7 @@ function Chronoline(domElement, events, options) {
 
     t.goToDate = function(date, position){
         // position is negative for left, 0 for middle, 1 for right
+        stripTime(date);
         if(position < 0){
             t.goToPx(-t.msToPx(date.getTime()));
         } else if(position > 0){
