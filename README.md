@@ -7,7 +7,7 @@ Currently, chronoline.js only requires raphael.js to function. jQuery/qTip2 are 
 
 To use it, provide a target element and an array of dates (possible ranges) with event descriptions, and it will render the contents of the timeline.
 
-There are a variety of options provided, which you can see in the JavaScript itself. They are currently (and will likely always be) quite idiosyncratic and represent the degrees of control needed for the projects this has been used for.
+There are a variety of options provided, which you can see in the JavaScript itself. They are currently (and will likely always be) quite idiosyncratic and represent the degrees of control needed for the projects this has been used for.If you would like to use it for yourself, go ahead and fork, file bugs in GitHub, or submit pull requests. Documentation is somewhat shoddy, and I'm happy to improve it as desired.
 
 Usage
 -----
