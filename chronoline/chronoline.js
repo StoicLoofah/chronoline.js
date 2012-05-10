@@ -351,6 +351,7 @@ function Chronoline(domElement, events, options) {
                 elem.attr(event.attrs);
             }
 
+            elem.attr('title', event.title);
             if(t.tooltips && !jQuery.browser.msie){
                 var description = event.description;
                 var title = event.title;
@@ -378,10 +379,7 @@ function Chronoline(domElement, events, options) {
                         classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded'
                     }
                 });
-            } else {
-                elem.attr('title', event.title);
             }
-
             if(t.sections != null && t.sectionLabelsOnHover){
                 // some magic here to tie the event back to the section label element
                 var originalIndex = event.section;
