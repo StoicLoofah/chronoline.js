@@ -31,47 +31,24 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>chronoline.js</h1>
-
-<p>chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. You can see a demo at <a href="http://stoicloofah.github.com/chronoline.js/">http://stoicloofah.github.com/chronoline.js/</a></p>
-
-<p>Currently, chronoline.js only requires raphael.js to function. jQuery/qTip2 are used to provide nicer tooltips, but these aren't required.</p>
-
-<p>To use it, provide a target element and an array of dates (possible ranges) with event descriptions, and it will render the contents of the timeline.</p>
-
-<p>There are a variety of options provided, which you can see in the JavaScript itself. They are currently (and will likely always be) quite idiosyncratic and represent the degrees of control needed for the projects this has been used for.</p>
-
-<h2>Usage</h2>
-
-<p>See the example for actual use. At its core, chronoline.js requires an element to land in and events.</p>
-
-<div class="highlight">
-<pre><span class="c1">// events are in an associative array that require at least an array of dates (possibly only 1 element) and title.</span>
-<span class="kd">var</span> <span class="nx">events</span> <span class="o">=</span> <span class="p">[</span>
-<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2011</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">31</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"2011 Season Opener"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">0</span><span class="p">},</span>
-<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">29</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"Spring Training Begins"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">2</span><span class="p">},</span>
-<span class="p">{</span><span class="nx">dates</span><span class="o">:</span> <span class="p">[</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">)],</span> <span class="nx">title</span><span class="o">:</span> <span class="s2">"Atlanta Braves @ Houston Astros"</span><span class="p">,</span> <span class="nx">section</span><span class="o">:</span> <span class="mi">1</span><span class="p">}</span>
-<span class="p">];</span>
-
-<span class="kd">var</span> <span class="nx">timeline</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Chronoline</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"target1"</span><span class="p">),</span> <span class="nx">events</span><span class="p">,</span> <span class="p">{});</span>
-</pre>
-</div>
 
 
-<p>Optional parameters</p>
+      <p>Welcome to the chronoline.js demo page. chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. Below are 3 examples with events from the 2012 MLB Regular Season.</p>
+      <h2>Monthly Timeline</h2>
+      <p>This day-by-day timeline shows off a few features. The events are automatically stacked compactly when they overlap, whether over a single point or a range. Also notice how the month labels stick to the edges when you scroll forward and past the first day of the month.
+      <div id="target1" class="timeline-tgt">
+        <input id="to-today" type="button" value="Go To Today" />
+      </div>
+      <h2>Quarterly Timeline</h2>
+      <p>Timelines can appear on different scales simply by plugging in one of a few existing defaults or by providing custom functions for it. Additionally, there are different options for how you want (or don't want) to highlight today on the timeline. If qtip is used, events also have tooltips.</p>
+      <div id="target2" class="timeline-tgt">
+      </div>
+      <h2>Yearly Timeline</h2>
+      <p>Even at a very large scope, chronoline.js still functions. Events are stacked differently because there isn't enough space to place them adjacently anymore.</p>
+      <div id="target3" class="timeline-tgt">
+      </div>
 
-<ul>
-<li>section: Give ids to your sections as well, and it'll link events and sections. Currently, this is only being used to correct hover states, but there may be more functionality in the future</li>
-<li>attrs: if you have any specific raphael.js attrs that you want</li>
-</ul><h2>Implementation notes</h2>
-
-<ul>
-<li>"px" is for pixels, "ms" is for milliseconds. Time is tracked by milliseconds (as Dates do in JS), and this is converted into pixels to be displayed</li>
-<li>most aesthetics are options. Much other functionality can be modified by providing functions, such as the scrolling intervals</li>
-<li>the smallest resolution you can get is days. In fact, all time information is stripped out of incoming dates</li>
-<li>all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways</li>
-<li>labels and hashes are only drawn as necessary. There are some pretty severe performance concerns (at least in FF in Ubuntu)</li>
-</ul><h2>Support</h2>
+<h2>Support</h2>
 
 <p>I mostly don't know what versions of various components are required. So far, I have used:</p>
 
@@ -94,6 +71,7 @@
 <li>Designed by <a href="http://twitter.com/#!/denykhoung">Deny Khoung</a>
 </li>
 </ul>
+
       </section>
     </div>
 
@@ -105,7 +83,84 @@
       </footer>
     </div>
 
-    
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="chronoline/jquery.qtip.min.css" />
+    <script type="text/javascript" src="chronoline/jquery.qtip.min.js"></script>
+
+    <script type="text/javascript" src="chronoline/raphael-min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="chronoline/chronoline.css" />
+    <script type="text/javascript" src="chronoline/chronoline.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){
+
+      var events = [
+      {dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0},
+      {dates: [new Date(2012, 1, 29)], title: "Spring Training Begins", section: 2},
+      {dates: [new Date(2012, 3, 5)], title: "Atlanta Braves @ New York Mets Game 1", section: 1},
+      {dates: [new Date(2012, 3, 7)], title: "Atlanta Braves @ New York Mets Game 2", section: 1},
+      {dates: [new Date(2012, 3, 8)], title: "Atlanta Braves @ New York Mets Game 3", section: 1},
+      {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1},
+      {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Milwaukee Brewers @ Atlanta Braves", section: 1},
+      {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Boston Red Sox @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Baltimore Orioles @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2012, 3, 17), new Date(2012, 3, 19)], title: "Tampa Bay Rays @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2012, 3, 20), new Date(2012, 3, 23)], title: "Toronto Blue Jays @ Kansas City Royals", section: 1},
+      {dates: [new Date(2012, 3, 5)], title: "Opening Day for 12 Teams", section: 1},
+      {dates: [new Date(2012, 2, 28)], title: "Seattle Mariners v. Oakland A's", section: 1, description: "Played in Japan!"},
+      {dates: [new Date(2012, 4, 18), new Date(2012, 5, 24)], title: "Interleague Play", section: 1},
+      {dates: [new Date(2012, 5, 10)], title: "All-Star Game", section: 1},
+      {dates: [new Date(2012, 9, 24)], title: "World Series Begins", section: 3}
+      ];
+
+      var sections = [
+      {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#eaf0fa"}},
+      {dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#eaf0fa"}}
+      ];
+
+      var timeline1 = new Chronoline(document.getElementById("target1"), events,
+        {animated: true,
+         tooltips: true,
+         defaultStartDate: new Date(2012, 3, 5),
+         sections: sections,
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'}
+      });
+
+      $('#to-today').click(function(){timeline1.goToToday();});
+
+      var timeline2 = new Chronoline(document.getElementById("target2"), events,
+        {visibleSpan: DAY_IN_MILLISECONDS * 91,
+      animated: true,
+         tooltips: true,
+         defaultStartDate: new Date(2012, 3, 5),
+         sections: sections,
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
+      labelInterval: isFifthDay,
+      hashInterval: isFifthDay,
+      scrollLeft: prevMonth,
+      scrollRight: nextMonth,
+      markToday: 'labelBox'
+      });
+
+      var timeline3 = new Chronoline(document.getElementById("target3"), events,
+        {visibleSpan: DAY_IN_MILLISECONDS * 366,
+      animated: true,
+         tooltips: true,
+         defaultStartDate: new Date(2012, 3, 5),
+         sections: sections,
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
+      labelInterval: isHalfMonth,
+      hashInterval: isHalfMonth,
+      scrollLeft: prevQuarter,
+      scrollRight: nextQuarter,
+      floatingSubLabels: false
+      });
+
+      });
+    </script>
 
   </body>
 </html>
