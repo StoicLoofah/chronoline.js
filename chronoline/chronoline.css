@@ -1,3 +1,6 @@
+.chronoline-wrapper {
+    position: relative;
+}
 .chronoline-wrapper * {
    -moz-user-select: -moz-none;
    -khtml-user-select: none;
