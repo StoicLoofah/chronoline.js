@@ -121,6 +121,11 @@ function Chronoline(domElement, events, options) {
         subLabelAttrs: {'font-weight': 'bold'},
         floatingSubLabels: true,  // whether sublabels should float into view
 
+        subSubLabel: 'year',  // TODO generalize this code
+        subSubLabelMargin: 2,
+        subSubLabelAttrs: {'font-weight': 'bold'},
+        floatingSubSubLabels: true,  // whether subSublabels should float into view
+
         fontAttrs: {
 	    'font-size': 10,
 	    fill: '#000000'
@@ -225,8 +230,9 @@ function Chronoline(domElement, events, options) {
     }
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
-    t.endDate = new Date(t.endDate.getTime() + 86400000);
+    t.endDate = new Date(Math.max(t.endDate.getTime() + 86400000, t.startDate.getTime() + t.visibleSpan))
     stripTime(t.endDate);
+
 
     // this ratio converts a time into a px position
     t.visibleWidth = t.domElement.clientWidth;
@@ -406,9 +412,35 @@ function Chronoline(domElement, events, options) {
     t.bottomHashY = dateLineY + t.hashLength;
     t.labelY = t.bottomHashY + t.fontAttrs['font-size'];
     t.subLabelY = t.bottomHashY + t.fontAttrs['font-size'] * 2 + t.subLabelMargin;
+    t.subSubLabelY = t.subLabelY + t.fontAttrs['font-size'] + t.subSubLabelMargin;
 
     // DATE LABELS
     // only a helper b/c it works within a specific range
+
+    // subSublabels. These can float
+    if(t.subSubLabel == 'year'){
+        var endYear = t.endDate.getFullYear();
+        for(var year = t.startDate.getFullYear(); year <= endYear; year++){
+            var curDate = new Date(year, 0, 1);
+            stripTime(curDate);
+            var x = t.msToPx(curDate.getTime());
+            var subSubLabel = t.paper.text(x, t.subSubLabelY, formatDate(curDate, '%Y').toUpperCase());
+            subSubLabel.attr(t.fontAttrs);
+            subSubLabel.attr(t.subSubLabelAttrs);
+            if(t.floatingSubSubLabels){
+                // bounds determine how far things can float
+                subSubLabel.data('left-bound', x);
+                var endOfYear = new Date(year, 11, 31);
+                stripTime(endOfYear);
+                subSubLabel.data('right-bound',
+                                 Math.min((endOfYear.getTime() - t.startTime) * t.pxRatio - 5,
+                                          t.totalWidth));
+                t.floatingSet.push(subSubLabel);
+            }
+        }
+    }
+
+
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
@@ -656,4 +688,5 @@ function Chronoline(domElement, events, options) {
     // set the default position
     t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pxRatio + 20 + 'px';
     t.goToPx(getLeft(t.paperElem));
+    t.myCanvas.style.height = t.totalHeight + 'px';
 }
