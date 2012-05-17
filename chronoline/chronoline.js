@@ -196,11 +196,6 @@ function Chronoline(domElement, events, options) {
 
 
     // CALCULATING MORE THINGS
-    // creating canvas pieces
-    t.myCanvas = document.createElement('div');
-    t.myCanvas.className = 'chronoline-canvas';
-    t.wrapper.appendChild(t.myCanvas);
-
     // generating relevant dates
     t.today = new Date(Date.now());
     stripTime(t.today);
@@ -210,10 +205,20 @@ function Chronoline(domElement, events, options) {
     }
 
     if(t.startDate == null){
-        t.startDate = t.events[0].dates[0];
-        for(var i = 1; i < t.events.length; i++)
-            if(t.events[i].dates[0] < t.startDate)
-                t.startDate = t.events[i].dates[0];
+        if(t.events.length > 0){
+            t.startDate = t.events[0].dates[0];
+            for(var i = 1; i < t.events.length; i++)
+                if(t.events[i].dates[0] < t.startDate)
+                    t.startDate = t.events[i].dates[0];
+        } else if(t.sections.length > 0) {
+            t.startDate = t.sections[0].dates[0];
+            for(var i = 0; i < t.sections.length; i++){
+                if(t.sections[i].dates[0] < t.startDate)
+                    t.startDate = t.sections[i].dates[0];
+            }
+        } else {
+            return;
+        }
     }
     stripTime(t.startDate);
 
@@ -223,10 +228,20 @@ function Chronoline(domElement, events, options) {
     t.startTime = t.startDate.getTime();
 
     if(t.endDate == null){
-        t.endDate = getEndDate(t.events[0].dates);
-        for(var i = 1; i < t.events.length; i++)
-            if(getEndDate(t.events[i].dates) > t.endDate)
-                t.endDate = getEndDate(t.events[i].dates);
+        if(t.events.length > 0){
+            t.endDate = getEndDate(t.events[0].dates);
+            for(var i = 1; i < t.events.length; i++)
+                if(getEndDate(t.events[i].dates) > t.endDate)
+                    t.endDate = getEndDate(t.events[i].dates);
+        } else if(t.sections.length > 0) {
+            t.endDate = t.sections[0].dates[1];
+            for(var i = 0; i < t.sections.length; i++){
+                if(t.sections[i].dates[1] > t.endDate)
+                    t.endDate = t.sections[i].dates[1];
+            }
+        } else {
+            return;
+        }
     }
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
@@ -281,6 +296,11 @@ function Chronoline(domElement, events, options) {
     // a few more calculations and creation
     t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
     t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
+
+    // creating canvas pieces
+    t.myCanvas = document.createElement('div');
+    t.myCanvas.className = 'chronoline-canvas';
+    t.wrapper.appendChild(t.myCanvas);
 
     t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
     t.paperElem = t.myCanvas.childNodes[0];
