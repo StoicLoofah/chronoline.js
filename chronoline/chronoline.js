@@ -1,3 +1,7 @@
+// chronoline.js
+// by Kevin Leung for Zanbato, https://zanbato.com
+// MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
+
 if (!Date.now) {
     Date.now = function now() {
         return +(new Date);
@@ -94,6 +98,7 @@ function Chronoline(domElement, events, options) {
         endDate: null,  // end of the timeline. Defauls to the last event date
 
         visibleSpan: 2592000000,  // in milliseconds,
+        timelinePadding: 0, // in ms. Adds this much time to the front and back to get some space
 
         topMargin: 40,  // overhead space on the canvas. useful for additional content
         eventHeight: 5,  // how tall event events are
@@ -224,7 +229,7 @@ function Chronoline(domElement, events, options) {
 
     if(t.startDate > t.defaultStartDate)
         t.startDate = t.defaultStartDate;
-    t.startDate = new Date(t.startDate.getTime() - 86400000);
+    t.startDate = new Date(t.startDate.getTime() - t.timelinePadding);
     t.startTime = t.startDate.getTime();
 
     if(t.endDate == null){
@@ -245,7 +250,7 @@ function Chronoline(domElement, events, options) {
     }
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
-    t.endDate = new Date(Math.max(t.endDate.getTime() + 86400000, t.startDate.getTime() + t.visibleSpan))
+    t.endDate = new Date(Math.max(t.endDate.getTime(), t.startDate.getTime() + t.visibleSpan) + t.timelinePadding)
     stripTime(t.endDate);
 
 
