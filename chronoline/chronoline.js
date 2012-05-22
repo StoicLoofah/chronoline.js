@@ -1,3 +1,7 @@
+// chronoline.js
+// by Kevin Leung for Zanbato, https://zanbato.com
+// MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
+
 if (!Date.now) {
     Date.now = function now() {
         return +(new Date);
