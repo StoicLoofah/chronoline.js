@@ -11,21 +11,68 @@ There are a variety of options provided, which you can see in the JavaScript its
 
 Usage
 -----
-See the example for actual use. At its core, chronoline.js requires an element to land in and events.
+See the example for actual use. At its core, chronoline.js requires events and a DOM element to land in. Here's a quick rundown through the format of those:
 ```javascript
-// events are in an associative array that require at least an array of dates (possibly only 1 element) and title.
+// events are in an associative array with an array of dates and a title that are the actual dots and bars in the timeline
 var events = [
-{dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0},
+{dates: [new Date(2011, 2, 31)],
+ title: "2011 Season Opener",
+ section: 0, //optional
+ attrs: {} // optional
+},
 {dates: [new Date(2012, 1, 29)], title: "Spring Training Begins", section: 2},
 {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1}
 ];
-
-var timeline = new Chronoline(document.getElementById("target1"), events, {});
 ```
 
-Optional parameters
-* section: Give ids to your sections as well, and it'll link events and sections. Currently, this is only being used to correct hover states, but there may be more functionality in the future
-* attrs: if you have any specific raphael.js attrs that you want
+Parameters
+* dates: required. either a single date or a pair of dates if it covers a span of time.
+* title: required. the hover text you get on the title.
+* section: optional. If you choose to add sections (see below), then this will be the id of the section to associate this event with. Currently, this is only being used to correct hover states, but there may be more functionality in the future
+* attrs: optional. any raphael.js attrs that you want applied to this specific element. If you have general attrs to apply to events, us the eventAttrs option to initializing Chronoline.
+
+```javascript
+// sections are represented by a background color over part of the timeline. They are optional
+var sections = [
+{dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)],
+ title: "2011 MLB Season",
+ section: 0,
+ attrs: {fill: "#d4e3fd"}
+},
+{dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)],
+ title: "2012 MLB Regular Season",
+ section: 1,
+ attrs: {fill: "#d4e3fd"}
+},
+{dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)],
+ title: "Spring Training",
+ section: 2,
+ attrs: {fill: "#eaf0fa"}
+},
+{dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)],
+ title: "2012 MLB Playoffs",
+ section: 3,
+ attrs: {fill: "#eaf0fa"}
+}
+];
+```
+
+Parameters
+* dates: required. Similar to events, except that it requires 2 dates
+* title: required. The title, which will appear at the top of the section
+* section: optional. id of the section, to which events bind
+* attrs: recommended. You should at least pass a fill color to it to distinguish it from nothing
+
+```javascript
+// actually creating the timeline. Also nessary
+var timeline = new Chronoline(document.getElementById("target1"), events,
+    {animated: true, sections: sections});
+```
+
+Parameters
+1. dom element to drop the timeline into
+2. the events array
+3. options. See the defaults in chronoline.js to see all available options. There are a lot, and I only anticipate them growing.
 
 Implementation notes
 --------------------

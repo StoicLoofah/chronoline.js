@@ -2,11 +2,11 @@
 // by Kevin Leung for Zanbato, https://zanbato.com
 // MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
 
-if (!Date.now) {
-    Date.now = function now() {
-        return +(new Date);
-    };
-}
+    if (!Date.now) {
+        Date.now = function now() {
+            return +(new Date);
+        };
+    }
 
 DAY_IN_MILLISECONDS = 86400000;
 
@@ -108,7 +108,7 @@ function Chronoline(domElement, events, options) {
         minEventsHeight: 40,
         maxEventsHeight: 1000,
 
-	hashColor: '#b8b8b8',
+        hashColor: '#b8b8b8',
 
         eventAttrs: {  // attrs for the bars and circles of the events
             fill: '#0055e1',
@@ -132,17 +132,17 @@ function Chronoline(domElement, events, options) {
         floatingSubSubLabels: true,  // whether subSublabels should float into view
 
         fontAttrs: {
-	    'font-size': 10,
-	    fill: '#000000'
-	},
+            'font-size': 10,
+            fill: '#000000'
+        },
         scrollable: true,
         // predefined fns include: prevMonth, nextMonth, prevQuarter, nextQuarter, backWeek, forwardWeek
         scrollLeft: backWeek,
         scrollRight: forwardWeek,
-        animated: false,
+        animated: false,  // whether scrolling is animated or just jumps
 
-        tooltips: false,
-        markToday: 'line',
+        tooltips: false,  // activates qtip tooltips. Otherwise, you just get title tooltips
+        markToday: 'line',  // 'line', 'labelBox', false
         todayAttrs: {'stroke': '#484848'},
 
         sections: null,
@@ -341,7 +341,7 @@ function Chronoline(domElement, events, options) {
             if(t.sectionLabelsOnHover){
                 elem.hover(function(){this.data('label').animate({opacity: 1}, 200);},
                            function(){this.data('label').animate({opacity: 0}, 200);});
-		sectionLabel.hover(function(){this.animate({opacity: 1}, 200);},
+                sectionLabel.hover(function(){this.animate({opacity: 1}, 200);},
                                    function(){this.animate({opacity: 0}, 200);});
                 sectionLabel.attr('opacity', 0);
             }
@@ -378,7 +378,7 @@ function Chronoline(domElement, events, options) {
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
-           if(typeof event.attrs != "undefined"){
+            if(typeof event.attrs != "undefined"){
                 elem.attr(event.attrs);
             }
 
@@ -396,16 +396,16 @@ function Chronoline(domElement, events, options) {
                         text: description
                     },
                     position: {
-			my: 'top left',
-			target: 'mouse',
-			viewport: jQuery(window), // Keep it on-screen at all times if possible
-			adjust: {
-			    x: 10,  y: 10
-			}
-		    },
-		    hide: {
-			fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
-		    },
+                        my: 'top left',
+                        target: 'mouse',
+                        viewport: jQuery(window), // Keep it on-screen at all times if possible
+                        adjust: {
+                            x: 10,  y: 10
+                        }
+                    },
+                    hide: {
+                        fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
+                    },
                     style: {
                         classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded'
                     }
@@ -475,7 +475,7 @@ function Chronoline(domElement, events, options) {
             // the little hashes
             if(t.hashInterval == null || t.hashInterval(curDate)){
                 var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
-	        hash.attr('stroke', t.hashColor);
+                hash.attr('stroke', t.hashColor);
             }
 
             // the labels directly below the hashes
