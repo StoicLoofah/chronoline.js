@@ -99,5 +99,4 @@ Credits
 * Built by and for [Zanbato](https://zanbato.com). [Ping us](https://zanbato.com/careers/) if you're interested in working with us!
 * Developed by [Kevin Leung](http://kevinleung.com)
 * Designed by [Deny Khoung](http://twitter.com/#!/denykhoung)
-* Designed by [Deny Khoung](http://twitter.com/#!/denykhoung)
 * Additional help from Dan Settel and Brandon Kwock
