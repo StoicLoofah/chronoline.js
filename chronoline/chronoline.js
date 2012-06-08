@@ -148,7 +148,9 @@ function Chronoline(domElement, events, options) {
         sections: null,
         floatingSectionLabels: true,
         sectionLabelAttrs: {},
-        sectionLabelsOnHover: true
+        sectionLabelsOnHover: true,
+
+        draggable: false
     }
     var t = this;
 
@@ -531,9 +533,8 @@ function Chronoline(domElement, events, options) {
         var newStartPx = Math.max(0, leftPxPos - t.visibleWidth);
         var newEndPx = Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth);
 
-        var newStartDate = new Date(t.pxToMs(leftPxPos));
+        var newStartDate = new Date(t.pxToMs(newStartPx));
         newStartDate = new Date(Date.UTC(newStartDate.getUTCFullYear(), newStartDate.getUTCMonth(), 1));
-
         var newStartMs = newStartDate.getTime();
         var newEndDate = new Date(t.pxToMs(Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth)));
         stripTime(newEndDate);
@@ -562,7 +563,7 @@ function Chronoline(domElement, events, options) {
     }
 
     t.isMoving = false;
-    t.goToPx = function(finalLeft) {
+    t.goToPx = function(finalLeft, isAnimated, isLabelsDrawn) {
         /*
           finalLeft is negative
 
@@ -577,9 +578,15 @@ function Chronoline(domElement, events, options) {
         */
         if(t.isMoving) return;
 
+        isAnimated = typeof isAnimated !== 'undefined' ? isAnimated : t.animated;
+        isLabelsDrawn = typeof isLabelsDrawn !== 'undefined' ? isLabelsDrawn : true;
+
         finalLeft = Math.min(finalLeft, 0);
         finalLeft = Math.max(finalLeft, -t.maxLeftPx);
-        t.drawLabels(-finalLeft);
+
+        if(isLabelsDrawn)
+            t.drawLabels(-finalLeft);
+
         var left = getLeft(t.paperElem);
 
         // hide scroll buttons if you're at the end
@@ -609,7 +616,7 @@ function Chronoline(domElement, events, options) {
             }
         });
 
-        if(t.animated){
+        if(isAnimated){
             t.isMoving = true;
 
             requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback, element){
@@ -696,6 +703,32 @@ function Chronoline(domElement, events, options) {
         t.rightControl.style.height = t.leftControl.style.height;
         rightIcon.style.marginTop = leftIcon.style.marginTop;
 
+    }
+
+    // ENABLING DRAGGING
+    if(t.draggable){
+        t.stopDragging = function(e){
+            t.wrapper.classList.remove('dragging');
+            jQuery(t.wrapper).unbind('mousemove', t.mouseMoved);
+            jQuery(t.wrapper).unbind('mouseleave', t.stopDragging);
+            jQuery(document).unbind('mouseup', t.stopDragging);
+            t.drawLabels(-getLeft(t.paperElem));
+        }
+
+        t.mouseMoved = function(e){
+            t.goToPx(t.dragPaperStart - (t.dragMouseStart - e.pageX), false, false);
+        }
+
+        t.wrapper.className += ' chronoline-draggable';
+        jQuery(t.paperElem).mousedown(function(e){
+            t.wrapper.classList.add('dragging');
+            e.preventDefault();
+            t.dragMouseStart = e.pageX;
+            t.dragPaperStart = getLeft(t.paperElem);
+            jQuery(t.wrapper).bind('mousemove', t.mouseMoved);
+            jQuery(t.wrapper).bind('mouseleave', t.stopDragging);
+            jQuery(document).bind('mouseup', t.stopDragging);
+        });
     }
 
     t.goToToday = function(){
