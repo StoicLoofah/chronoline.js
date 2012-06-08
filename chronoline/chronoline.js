@@ -150,7 +150,8 @@ function Chronoline(domElement, events, options) {
         sectionLabelAttrs: {},
         sectionLabelsOnHover: true,
 
-        draggable: false
+        draggable: false,
+        continuousScroll: true  // requires that scrollable be true
     }
     var t = this;
 
@@ -372,17 +373,20 @@ function Chronoline(domElement, events, options) {
                 if(typeof event.attrs != "undefined"){
                     leftCircle.attr(event.attrs);
                 }
+                leftCircle.node.setAttribute('class', ' chronoline-event');
                 // right rounded corner
                 var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
                 if(typeof event.attrs != "undefined"){
                     rightCircle.attr(event.attrs);
                 }
+                rightCircle.node.setAttribute('class', 'chronoline-event');
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
             if(typeof event.attrs != "undefined"){
                 elem.attr(event.attrs);
             }
+            elem.node.setAttribute('class', 'chronoline-event');
 
             elem.attr('title', event.title);
             if(t.tooltips && !jQuery.browser.msie){
@@ -674,8 +678,9 @@ function Chronoline(domElement, events, options) {
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
         t.leftControl.style.marginTop = t.topMargin + 'px';
-        t.leftControl.onclick = function(){
+        t.leftControl.onclick = function(e){
             t.goToDate(t.scrollLeft(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
+            e.stopPropagation();
             return false;
         };
 
@@ -706,6 +711,8 @@ function Chronoline(domElement, events, options) {
     }
 
     // ENABLING DRAGGING
+    // i'm not using raphael.js built-in dragging since this is for the entire canvas
+    // also, i didn't see that function before I wrote this
     if(t.draggable){
         t.stopDragging = function(e){
             t.wrapper.classList.remove('dragging');
