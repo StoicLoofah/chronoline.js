@@ -3,7 +3,7 @@ chronoline.js
 
 chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. You can see a demo at http://stoicloofah.github.com/chronoline.js/
 
-Currently, chronoline.js only requires raphael.js to function. jQuery/qTip2 are used to provide nicer tooltips, but these aren't required.
+Currently, chronoline.js only requires raphael.js to function. jQuery is used to provide nicer tooltips (using qTip2) and dragging support, but these aren't required.
 
 To use it, provide a target element and an array of dates (possible ranges) with event descriptions, and it will render the contents of the timeline.
 

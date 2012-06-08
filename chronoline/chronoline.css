@@ -61,3 +61,16 @@
     border-radius: 2px;
     max-width: 300px;
 }
+
+.chronoline-draggable {
+  cursor:hand;
+  cursor:grab;
+  cursor:-moz-grab;
+  cursor:-webkit-grab;
+}
+
+.chronoline-draggable.dragging {
+  cursor:grabbing;
+  cursor:-moz-grabbing;
+  cursor:-webkit-grabbing;
+}

@@ -35,7 +35,8 @@
 
       <p>Welcome to the chronoline.js demo page. chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale. From a list of dates and events, it can generate a graphical representation of schedules, historical events, deadlines, and more. Below are 3 examples with events from the 2012 MLB Regular Season.</p>
       <h2>Monthly Timeline</h2>
-      <p>This day-by-day timeline shows off a few features. The events are automatically stacked compactly when they overlap, whether over a single point or a range. Also notice how the month labels stick to the edges when you scroll forward and past the first day of the month.
+      <p>This day-by-day timeline shows off a few features. The events are automatically stacked compactly when they overlap, whether over a single point or a range. Notice how the month labels stick to the edges when you scroll forward and past the first day of the month.</p>
+      <p>This timeline also has dragging enabled, so click, hold, and drag to try that out.</p>
       <div id="target1" class="timeline-tgt">
         <input id="to-today" type="button" value="Go To Today" />
       </div>
@@ -128,23 +129,31 @@
          tooltips: true,
          defaultStartDate: new Date(2012, 3, 5),
          sections: sections,
-         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'}
+         sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
       });
 
       $('#to-today').click(function(){timeline1.goToToday();});
+
+      var sections2 = [
+      {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "##e3f0fe"}},
+      {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#e3f0fe"}},
+      {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#cce5ff"}},
+      {dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#cce5ff"}}
+      ];
 
       var timeline2 = new Chronoline(document.getElementById("target2"), events,
         {visibleSpan: DAY_IN_MILLISECONDS * 91,
       animated: true,
          tooltips: true,
          defaultStartDate: new Date(2012, 3, 5),
-         sections: sections,
+         sections: sections2,
          sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
       labelInterval: isFifthDay,
       hashInterval: isFifthDay,
       scrollLeft: prevMonth,
       scrollRight: nextMonth,
-      markToday: 'labelBox'
+      markToday: 'labelBox',
+         draggable: true
       });
 
       var timeline3 = new Chronoline(document.getElementById("target3"), events,
@@ -158,7 +167,7 @@
       hashInterval: isHalfMonth,
       scrollLeft: prevQuarter,
       scrollRight: nextQuarter,
-      floatingSubLabels: false
+      floatingSubLabels: false,
       });
 
       });
