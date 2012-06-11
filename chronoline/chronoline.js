@@ -12,6 +12,10 @@ DAY_IN_MILLISECONDS = 86400000;
 
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback, element){
+    return window.setTimeout(function(){callback(+new Date());}, 1000 / 60);
+};
+
 function stripTime(date){
     date.setUTCHours(0);
     date.setUTCMinutes(0);
@@ -151,7 +155,8 @@ function Chronoline(domElement, events, options) {
         sectionLabelsOnHover: true,
 
         draggable: false,
-        continuousScroll: true  // requires that scrollable be true
+        continuousScroll: true,  // requires that scrollable be true
+        continuousScrollSpeed: 1,
     }
     var t = this;
 
@@ -580,7 +585,7 @@ function Chronoline(domElement, events, options) {
           - animating floating content using raphael.animate
           This solution is by far the smoothest and doesn't have any asynchrony problems. There's some twitching going on with floating content, but it's not THAT bad
         */
-        if(t.isMoving) return;
+        if(t.isMoving) return false;
 
         isAnimated = typeof isAnimated !== 'undefined' ? isAnimated : t.animated;
         isLabelsDrawn = typeof isLabelsDrawn !== 'undefined' ? isLabelsDrawn : true;
@@ -597,11 +602,13 @@ function Chronoline(domElement, events, options) {
         if(t.scrollable){
             if(finalLeft == 0){
                 t.leftControl.style.display = 'none';
+                t.isScrolling = false;
             } else {
                 t.leftControl.style.display = '';
             }
             if(finalLeft == t.visibleWidth - t.totalWidth){
                 t.rightControl.style.display = 'none';
+                t.isScrolling = false;
             } else {
                 t.rightControl.style.display = '';
             }
@@ -622,10 +629,6 @@ function Chronoline(domElement, events, options) {
 
         if(isAnimated){
             t.isMoving = true;
-
-            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback, element){
-                return window.setTimeout(function(){callback(+new Date());}, 1000 / 60);
-            };
 
             var start = Date.now();
 
@@ -658,6 +661,8 @@ function Chronoline(domElement, events, options) {
                 movingLabels[i][0].attr('x', movingLabels[i][2] + movingLabels[i][1]);
             }
         }
+
+        return finalLeft != 0 && finalLeft != -t.maxLeftPx;
     }
 
     t.goToDate = function(date, position){
@@ -678,11 +683,6 @@ function Chronoline(domElement, events, options) {
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
         t.leftControl.style.marginTop = t.topMargin + 'px';
-        t.leftControl.onclick = function(e){
-            t.goToDate(t.scrollLeft(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
-            e.stopPropagation();
-            return false;
-        };
 
         var leftIcon = document.createElement('div');
         leftIcon.className = 'chronoline-left-icon';
@@ -696,10 +696,6 @@ function Chronoline(domElement, events, options) {
         t.rightControl = document.createElement('div');
         t.rightControl.className = 'chronoline-right';
         t.rightControl.style.marginTop = t.topMargin + 'px';
-        t.rightControl.onclick = function(){
-            t.goToDate(t.scrollRight(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
-            return false;
-        };
 
         var rightIcon = document.createElement('div');
         rightIcon.className = 'chronoline-right-icon';
@@ -708,11 +704,94 @@ function Chronoline(domElement, events, options) {
         t.rightControl.style.height = t.leftControl.style.height;
         rightIcon.style.marginTop = leftIcon.style.marginTop;
 
+        t.scrollLeftDiscrete = function(e){
+            t.goToDate(t.scrollLeft(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
+            return false;
+        };
+
+        t.scrollRightDiscrete = function(e){
+                t.goToDate(t.scrollRight(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
+                return false;
+            };
+
+        // continuous scroll
+        // left and right are pretty much the same but need to be flipped
+        if(t.continuousScroll){
+            t.isScrolling = false;
+            t.timeoutId = -1;
+
+            t.scrollLeftContinuous = function(timestamp){
+                if(t.isScrolling){
+                    requestAnimationFrame(t.scrollLeftContinuous);
+                }
+                var finalLeft = t.continuousScrollSpeed * (timestamp - t.scrollStart) + t.scrollPaperStart;
+                t.goToPx(finalLeft, false, finalLeft > - t.msToPx(t.drawnStartMs));
+            };
+
+            t.endScrollLeft = function(e){
+                clearTimeout(t.scrollTimeoutId);
+                if(t.toScrollDiscrete){
+                    t.toScrollDiscrete = false;
+                    t.scrollLeftDiscrete();
+                }
+                t.isScrolling = false;
+            };
+
+            t.leftControl.onmousedown = function(e){
+                t.toScrollDiscrete = true;
+                t.scrollPaperStart = getLeft(t.paperElem);
+                t.scrollTimeoutId = setTimeout(function(){
+                    t.toScrollDiscrete = false;  // switched is flipped
+                    t.scrollStart = Date.now();
+                    t.isScrolling = true;  // whether it's currently moving
+                    requestAnimationFrame(t.scrollLeftContinuous);
+                }, 500);
+            };
+            t.leftControl.onmouseup = t.endScrollLeft;
+            t.leftControl.onmouseleave = t.endScrollLeft;
+
+
+            t.scrollRightContinuous = function(timestamp){
+                if(t.isScrolling){
+                    requestAnimationFrame(t.scrollRightContinuous);
+                }
+                var finalLeft = t.continuousScrollSpeed * (t.scrollStart - timestamp) + t.scrollPaperStart;
+                t.goToPx(finalLeft, false, finalLeft - t.visibleWidth < - t.msToPx(t.drawnEndMs));
+            };
+
+            t.endScrollRight = function(e){
+                clearTimeout(t.scrollTimeoutId);
+                if(t.toScrollDiscrete){
+                    t.toScrollDiscrete = false;
+                    t.scrollRightDiscrete();
+                }
+                t.isScrolling = false;
+            };
+
+            t.rightControl.onmousedown = function(e){
+                t.toScrollDiscrete = true;
+                t.scrollPaperStart = getLeft(t.paperElem);
+                t.scrollTimeoutId = setTimeout(function(){
+                    t.toScrollDiscrete = false;  // switched is flipped
+                    t.scrollStart = Date.now();
+                    t.isScrolling = true;  // whether it's currently moving
+                    requestAnimationFrame(t.scrollRightContinuous);
+                }, 500);
+            };
+            t.rightControl.onmouseup = t.endScrollRight;
+            t.rightControl.onmouseleave = t.endScrollRight;
+
+        } else {  // just hook up discrete scrolling
+            t.leftControl.onclick = t.scrollLeftDiscrete;
+            t.rightControl.onclick = t.scrollLeftDiscrete;
+        }
+
     }
 
     // ENABLING DRAGGING
     // i'm not using raphael.js built-in dragging since this is for the entire canvas
     // also, i didn't see that function before I wrote this
+    // using jQuery to get mouseleave to work cross-browser
     if(t.draggable){
         t.stopDragging = function(e){
             t.wrapper.classList.remove('dragging');
