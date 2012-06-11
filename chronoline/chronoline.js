@@ -16,6 +16,14 @@ requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimati
     return window.setTimeout(function(){callback(+new Date());}, 1000 / 60);
 };
 
+function addElemClass(paperType, node, newClass){
+    if(paperType == 'SVG'){
+        node.setAttribute('class', newClass);
+    } else {
+        node.className += ' ' + newClass
+    }
+}
+
 function stripTime(date){
     date.setUTCHours(0);
     date.setUTCMinutes(0);
@@ -143,7 +151,7 @@ function Chronoline(domElement, events, options) {
         // predefined fns include: prevMonth, nextMonth, prevQuarter, nextQuarter, backWeek, forwardWeek
         scrollLeft: backWeek,
         scrollRight: forwardWeek,
-        animated: false,  // whether scrolling is animated or just jumps
+        animated: false,  // whether scrolling is animated or just jumps, requires jQuery
 
         tooltips: false,  // activates qtip tooltips. Otherwise, you just get title tooltips
         markToday: 'line',  // 'line', 'labelBox', false
@@ -154,9 +162,10 @@ function Chronoline(domElement, events, options) {
         sectionLabelAttrs: {},
         sectionLabelsOnHover: true,
 
-        draggable: false,
-        continuousScroll: true,  // requires that scrollable be true
-        continuousScrollSpeed: 1,
+        draggable: false, // requires jQuery, allows mouse dragging
+
+        continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
+        continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
     }
     var t = this;
 
@@ -316,6 +325,7 @@ function Chronoline(domElement, events, options) {
     t.wrapper.appendChild(t.myCanvas);
 
     t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
+    t.paperType = t.paper.raphael.type;
     t.paperElem = t.myCanvas.childNodes[0];
 
     // DRAWING
@@ -378,20 +388,20 @@ function Chronoline(domElement, events, options) {
                 if(typeof event.attrs != "undefined"){
                     leftCircle.attr(event.attrs);
                 }
-                leftCircle.node.setAttribute('class', ' chronoline-event');
+                addElemClass(t.paperType, leftCircle.node, 'chronoline-event');
                 // right rounded corner
                 var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
                 if(typeof event.attrs != "undefined"){
                     rightCircle.attr(event.attrs);
                 }
-                rightCircle.node.setAttribute('class', 'chronoline-event');
+                addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
             if(typeof event.attrs != "undefined"){
                 elem.attr(event.attrs);
             }
-            elem.node.setAttribute('class', 'chronoline-event');
+            addElemClass(t.paperType, elem.node, 'chronoline-event');
 
             elem.attr('title', event.title);
             if(t.tooltips && !jQuery.browser.msie){
@@ -745,7 +755,7 @@ function Chronoline(domElement, events, options) {
                     t.scrollStart = Date.now();
                     t.isScrolling = true;  // whether it's currently moving
                     requestAnimationFrame(t.scrollLeftContinuous);
-                }, 500);
+                }, 200);
             };
             t.leftControl.onmouseup = t.endScrollLeft;
             t.leftControl.onmouseleave = t.endScrollLeft;
@@ -794,10 +804,10 @@ function Chronoline(domElement, events, options) {
     // using jQuery to get mouseleave to work cross-browser
     if(t.draggable){
         t.stopDragging = function(e){
-            t.wrapper.classList.remove('dragging');
-            jQuery(t.wrapper).unbind('mousemove', t.mouseMoved);
-            jQuery(t.wrapper).unbind('mouseleave', t.stopDragging);
-            jQuery(document).unbind('mouseup', t.stopDragging);
+            jQuery(t.wrapper).removeClass('dragging')
+                .unbind('mousemove', t.mouseMoved)
+                .unbind('mouseleave', t.stopDragging)
+                .unbind('mouseup', t.stopDragging);
             t.drawLabels(-getLeft(t.paperElem));
         }
 
@@ -807,13 +817,13 @@ function Chronoline(domElement, events, options) {
 
         t.wrapper.className += ' chronoline-draggable';
         jQuery(t.paperElem).mousedown(function(e){
-            t.wrapper.classList.add('dragging');
             e.preventDefault();
             t.dragMouseStart = e.pageX;
             t.dragPaperStart = getLeft(t.paperElem);
-            jQuery(t.wrapper).bind('mousemove', t.mouseMoved);
-            jQuery(t.wrapper).bind('mouseleave', t.stopDragging);
-            jQuery(document).bind('mouseup', t.stopDragging);
+            jQuery(t.wrapper).addClass('dragging')
+                .bind('mousemove', t.mouseMoved)
+                .bind('mouseleave', t.stopDragging)
+                .bind('mouseup', t.stopDragging);
         });
     }
 
