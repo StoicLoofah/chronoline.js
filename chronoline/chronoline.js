@@ -25,10 +25,7 @@ function addElemClass(paperType, node, newClass){
 }
 
 function stripTime(date){
-    date.setUTCHours(0);
-    date.setUTCMinutes(0);
-    date.setUTCSeconds(0);
-    date.setUTCMilliseconds(0);
+    date.setTime(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).getTime());
 }
 
 function formatDate(date, formatString){
