@@ -25,7 +25,7 @@ function addElemClass(paperType, node, newClass){
 }
 
 function stripTime(date){
-    date.setTime(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).getTime());
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
 }
 
 function formatDate(date, formatString){
@@ -197,7 +197,7 @@ function Chronoline(domElement, events, options) {
     // need to convert dates to UTC
     for(var i = 0; i < events.length; i++){
         for(var j = 0; j < events[i].dates.length; j++){
-            stripTime(events[i].dates[j]);
+            events[i].dates[j] = stripTime(events[i].dates[j]);
         }
     }
     t.events = events;
@@ -207,7 +207,7 @@ function Chronoline(domElement, events, options) {
     if(t.sections != null){
         for(var i = 0; i < t.sections.length; i++){
             for(var j = 0; j < t.sections[i].dates.length; j++){
-                stripTime(t.sections[i].dates[j]);
+                t.sections[i].dates[j] = stripTime(t.sections[i].dates[j]);
             }
         }
         t.sections.sort(t.sortEvents);
@@ -216,8 +216,7 @@ function Chronoline(domElement, events, options) {
 
     // CALCULATING MORE THINGS
     // generating relevant dates
-    t.today = new Date(Date.now());
-    stripTime(t.today);
+    t.today = stripTime(new Date(Date.now()));
 
     if(t.defaultStartDate == null){
         t.defaultStartDate = t.today;
@@ -239,7 +238,7 @@ function Chronoline(domElement, events, options) {
             return;
         }
     }
-    stripTime(t.startDate);
+    t.startDate = stripTime(t.startDate);
 
     if(t.startDate > t.defaultStartDate)
         t.startDate = t.defaultStartDate;
@@ -264,8 +263,7 @@ function Chronoline(domElement, events, options) {
     }
     if(t.endDate < t.defaultStartDate)
         t.endDate = t.defaultStartDate;
-    t.endDate = new Date(Math.max(t.endDate.getTime(), t.startDate.getTime() + t.visibleSpan) + t.timelinePadding)
-    stripTime(t.endDate);
+    t.endDate = stripTime(new Date(Math.max(t.endDate.getTime(), t.startDate.getTime() + t.visibleSpan) + t.timelinePadding))
 
 
     // this ratio converts a time into a px position
@@ -464,8 +462,7 @@ function Chronoline(domElement, events, options) {
     if(t.subSubLabel == 'year'){
         var endYear = t.endDate.getFullYear();
         for(var year = t.startDate.getFullYear(); year <= endYear; year++){
-            var curDate = new Date(Date.UTC(year, 0, 1));
-            stripTime(curDate);
+            var curDate = stripTime(new Date(Date.UTC(year, 0, 1)));
             var x = t.msToPx(curDate.getTime());
             var subSubLabel = t.paper.text(x, t.subSubLabelY, formatDate(curDate, '%Y').toUpperCase());
             subSubLabel.attr(t.fontAttrs);
@@ -473,8 +470,7 @@ function Chronoline(domElement, events, options) {
             if(t.floatingSubSubLabels){
                 // bounds determine how far things can float
                 subSubLabel.data('left-bound', x);
-                var endOfYear = new Date(Date.UTC(year, 11, 31));
-                stripTime(endOfYear);
+                var endOfYear = stripTime(new Date(Date.UTC(year, 11, 31)));
                 subSubLabel.data('right-bound',
                                  Math.min((endOfYear.getTime() - t.startTime) * t.pxRatio - 5,
                                           t.totalWidth));
@@ -552,8 +548,7 @@ function Chronoline(domElement, events, options) {
         var newStartDate = new Date(t.pxToMs(newStartPx));
         newStartDate = new Date(Date.UTC(newStartDate.getUTCFullYear(), newStartDate.getUTCMonth(), 1));
         var newStartMs = newStartDate.getTime();
-        var newEndDate = new Date(t.pxToMs(Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth)));
-        stripTime(newEndDate);
+        var newEndDate = stripTime(new Date(t.pxToMs(Math.min(t.totalWidth, leftPxPos + 2 * t.visibleWidth))))
         var newEndMs = newEndDate.getTime();
 
         if(t.drawnStartMs == null){  // first time
@@ -674,7 +669,7 @@ function Chronoline(domElement, events, options) {
 
     t.goToDate = function(date, position){
         // position is negative for left, 0 for middle, 1 for right
-        stripTime(date);
+        date = stripTime(date);
         if(position < 0){
             t.goToPx(-t.msToPx(date.getTime()));
         } else if(position > 0){
