@@ -462,7 +462,7 @@ function Chronoline(domElement, events, options) {
     if(t.subSubLabel == 'year'){
         var endYear = t.endDate.getFullYear();
         for(var year = t.startDate.getFullYear(); year <= endYear; year++){
-            var curDate = stripTime(new Date(Date.UTC(year, 0, 1)));
+            var curDate = stripTime(new Date(year, 0, 1));
             var x = t.msToPx(curDate.getTime());
             var subSubLabel = t.paper.text(x, t.subSubLabelY, formatDate(curDate, '%Y').toUpperCase());
             subSubLabel.attr(t.fontAttrs);
@@ -470,7 +470,7 @@ function Chronoline(domElement, events, options) {
             if(t.floatingSubSubLabels){
                 // bounds determine how far things can float
                 subSubLabel.data('left-bound', x);
-                var endOfYear = stripTime(new Date(Date.UTC(year, 11, 31)));
+                var endOfYear = stripTime(new Date(year, 11, 31));
                 subSubLabel.data('right-bound',
                                  Math.min((endOfYear.getTime() - t.startTime) * t.pxRatio - 5,
                                           t.totalWidth));
