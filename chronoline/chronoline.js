@@ -632,10 +632,11 @@ function Chronoline(domElement, events, options) {
         if(isAnimated){
             t.isMoving = true;
 
-            var start = Date.now();
-
+            var start = null;
             var elem = t.paperElem;
             function step(timestamp) {
+                if(start == null)
+                    start = timestamp;
                 var progress = (timestamp - start) / 200;
                 var pos = (finalLeft - left) * progress + left;
                 elem.style.left = pos + "px";
@@ -712,9 +713,9 @@ function Chronoline(domElement, events, options) {
         };
 
         t.scrollRightDiscrete = function(e){
-                t.goToDate(t.scrollRight(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
-                return false;
-            };
+            t.goToDate(t.scrollRight(new Date(t.pxToMs(-getLeft(t.paperElem)))), -1);
+            return false;
+        };
 
         // continuous scroll
         // left and right are pretty much the same but need to be flipped
