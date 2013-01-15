@@ -724,6 +724,8 @@ function Chronoline(domElement, events, options) {
             t.timeoutId = -1;
 
             t.scrollLeftContinuous = function(timestamp){
+                if(t.scrollStart == null)
+                    t.scrollStart = timestamp;
                 if(t.isScrolling){
                     requestAnimationFrame(t.scrollLeftContinuous);
                 }
@@ -745,7 +747,7 @@ function Chronoline(domElement, events, options) {
                 t.scrollPaperStart = getLeft(t.paperElem);
                 t.scrollTimeoutId = setTimeout(function(){
                     t.toScrollDiscrete = false;  // switched is flipped
-                    t.scrollStart = Date.now();
+                    t.scrollStart = null;
                     t.isScrolling = true;  // whether it's currently moving
                     requestAnimationFrame(t.scrollLeftContinuous);
                 }, 200);
@@ -755,6 +757,8 @@ function Chronoline(domElement, events, options) {
 
 
             t.scrollRightContinuous = function(timestamp){
+                if(t.scrollStart == null)
+                    t.scrollStart = timestamp;
                 if(t.isScrolling){
                     requestAnimationFrame(t.scrollRightContinuous);
                 }
@@ -776,7 +780,7 @@ function Chronoline(domElement, events, options) {
                 t.scrollPaperStart = getLeft(t.paperElem);
                 t.scrollTimeoutId = setTimeout(function(){
                     t.toScrollDiscrete = false;  // switched is flipped
-                    t.scrollStart = Date.now();
+                    t.scrollStart = null;
                     t.isScrolling = true;  // whether it's currently moving
                     requestAnimationFrame(t.scrollRightContinuous);
                 }, 500);
