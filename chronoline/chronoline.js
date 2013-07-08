@@ -423,7 +423,7 @@ function Chronoline(domElement, events, options) {
                         fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
                     },
                     style: {
-                        classes: 'ui-tooltip-shadow ui-tooltip-dark ui-tooltip-rounded'
+                        classes: 'qtip-shadow qtip-dark qtip-rounded'
                     }
                 });
             }
