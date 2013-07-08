@@ -668,7 +668,7 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToDate = function(date, position){
-        // position is negative for left, 0 for middle, 1 for right
+        // position is negative for left, 0 for middle, positive for right
         date = stripTime(date);
         if(position < 0){
             t.goToPx(-t.msToPx(date.getTime()));
@@ -824,14 +824,17 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToToday = function(){
+        // scrolls to put today in the middle
         t.goToDate(t.today, 0);
     };
 
     t.getLeftTime = function(){
+        // gets the time (ms) of the left edge of the visible area
         return Math.floor(t.startTime - getLeft(t.paperElem) / t.pxRatio);
     };
 
     t.getRightTime = function(){
+        // gets the time (ms) of the right edge of the visible area
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
 
