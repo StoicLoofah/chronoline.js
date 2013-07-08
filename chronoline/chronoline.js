@@ -51,8 +51,8 @@ function formatDate(date, formatString){
 }
 
 function getLeft(elem){
-    var leftString = elem.style.left;
-    return parseInt(leftString.substring(0, leftString.length - 2));
+    // parseInt automatically tosses the "px" off the end
+    return parseInt(elem.style.left);
 }
 
 function getEndDate(dateArray){
@@ -592,8 +592,7 @@ function Chronoline(domElement, events, options) {
         isAnimated = typeof isAnimated !== 'undefined' ? isAnimated : t.animated;
         isLabelsDrawn = typeof isLabelsDrawn !== 'undefined' ? isLabelsDrawn : true;
 
-        finalLeft = Math.min(finalLeft, 0);
-        finalLeft = Math.max(finalLeft, -t.maxLeftPx);
+        finalLeft = Math.max(Math.min(finalLeft, 0), -t.maxLeftPx);
 
         if(isLabelsDrawn)
             t.drawLabels(-finalLeft);
@@ -669,7 +668,7 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToDate = function(date, position){
-        // position is negative for left, 0 for middle, 1 for right
+        // position is negative for left, 0 for middle, positive for right
         date = stripTime(date);
         if(position < 0){
             t.goToPx(-t.msToPx(date.getTime()));
@@ -825,14 +824,17 @@ function Chronoline(domElement, events, options) {
     }
 
     t.goToToday = function(){
+        // scrolls to put today in the middle
         t.goToDate(t.today, 0);
     };
 
     t.getLeftTime = function(){
+        // gets the time (ms) of the left edge of the visible area
         return Math.floor(t.startTime - getLeft(t.paperElem) / t.pxRatio);
     };
 
     t.getRightTime = function(){
+        // gets the time (ms) of the right edge of the visible area
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
 
