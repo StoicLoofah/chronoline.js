@@ -87,7 +87,7 @@ Support
 I mostly don't know what versions of various components are required. So far, I have used:
 * raphael.js: 2.1.0
 * jQuery: 1.7.2
-* qTip2: 04/24/12 nightly
+* [qTip2](http://qtip2.com/): 2.0.1
 
 Browser support is:
 * Internet Explorer 8+ (except the tooltips)
