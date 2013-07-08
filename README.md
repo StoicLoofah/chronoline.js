@@ -80,7 +80,7 @@ Implementation notes
 * most aesthetics are options. Much other functionality can be modified by providing functions, such as the scrolling intervals
 * the smallest resolution you can get is days. In fact, all time information is stripped out of incoming dates
 * all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways
-* labels and hashes are only drawn as necessary. There are some pretty severe performance concerns (at least in FF in Ubuntu)
+* labels and hashes are only drawn as necessary with scrolling. There are severe performance problems (at least in Ubuntu Firefox) with drawing everything at once. Similarly, using goToDate to a distant date may also lag.
 
 Support
 -------

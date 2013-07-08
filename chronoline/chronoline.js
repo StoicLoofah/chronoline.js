@@ -51,8 +51,8 @@ function formatDate(date, formatString){
 }
 
 function getLeft(elem){
-    var leftString = elem.style.left;
-    return parseInt(leftString.substring(0, leftString.length - 2));
+    // parseInt automatically tosses the "px" off the end
+    return parseInt(elem.style.left);
 }
 
 function getEndDate(dateArray){
@@ -592,8 +592,7 @@ function Chronoline(domElement, events, options) {
         isAnimated = typeof isAnimated !== 'undefined' ? isAnimated : t.animated;
         isLabelsDrawn = typeof isLabelsDrawn !== 'undefined' ? isLabelsDrawn : true;
 
-        finalLeft = Math.min(finalLeft, 0);
-        finalLeft = Math.max(finalLeft, -t.maxLeftPx);
+        finalLeft = Math.max(Math.min(finalLeft, 0), -t.maxLeftPx);
 
         if(isLabelsDrawn)
             t.drawLabels(-finalLeft);
