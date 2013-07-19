@@ -97,6 +97,6 @@ Browser support is:
 Credits
 -------
 * Built by and for [Zanbato](https://zanbato.com).
-* Developed by [Kevin Leung](http://kevinleung.com)
-* Designed by [Deny Khoung](http://twitter.com/#!/denykhoung)
+* Developed by Kevin Leung ([website](http://kevinleung.com), [github](https://github.com/StoicLoofah))
+* Designed by Deny Khoung ([twitter](http://twitter.com/#!/denykhoung), [github](https://github.com/denyk))
 * Additional help from Dan Settel and Brandon Kwock
