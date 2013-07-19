@@ -62,6 +62,7 @@ Parameters
 * title: required. The title, which will appear at the top of the section
 * section: optional. id of the section, to which events bind
 * attrs: recommended. You should at least pass a fill color to it to distinguish it from nothing
+* link: optional. Provide a URL, and if you click on an event, it'll navigate to the URL 
 
 ```javascript
 // actually creating the timeline. Also nessary
