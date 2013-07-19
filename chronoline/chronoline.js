@@ -371,37 +371,44 @@ function Chronoline(domElement, events, options) {
     for(var row = 0; row < t.eventRows.length; row++){
         var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
         for(var col = 0; col < t.eventRows[row].length; col++){
-            var event = t.eventRows[row][col];
-            var startX = (event.dates[0].getTime() - t.startTime) * t.pxRatio;
+            var myEvent = t.eventRows[row][col];
+            var startX = (myEvent.dates[0].getTime() - t.startTime) * t.pxRatio;
             var elem = null;
-            if(event.dates.length == 1){  // it's a single point
+            if(myEvent.dates.length == 1){  // it's a single point
                 elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
             } else {  // it's a range
-                var width = (getEndDate(event.dates) - event.dates[0]) * t.pxRatio;
+                var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
                 // left rounded corner
                 var leftCircle = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
-                if(typeof event.attrs != "undefined"){
-                    leftCircle.attr(event.attrs);
+                if(typeof myEvent.attrs != "undefined"){
+                    leftCircle.attr(myEvent.attrs);
                 }
                 addElemClass(t.paperType, leftCircle.node, 'chronoline-event');
                 // right rounded corner
                 var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
-                if(typeof event.attrs != "undefined"){
-                    rightCircle.attr(event.attrs);
+                if(typeof myEvent.attrs != "undefined"){
+                    rightCircle.attr(myEvent.attrs);
                 }
                 addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
                 elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
             }
 
-            if(typeof event.attrs != "undefined"){
-                elem.attr(event.attrs);
+            if(typeof myEvent.link != 'undefined') {
+                elem.data('link', myEvent.link);
+                elem.click(function(){
+                    window.location.href = this.data('link');
+                });
+            }
+
+            if(typeof myEvent.attrs != "undefined"){
+                elem.attr(myEvent.attrs);
             }
             addElemClass(t.paperType, elem.node, 'chronoline-event');
 
-            elem.attr('title', event.title);
+            elem.attr('title', myEvent.title);
             if(t.tooltips && !jQuery.browser.msie){
-                var description = event.description;
-                var title = event.title;
+                var description = myEvent.description;
+                var title = myEvent.title;
                 if(typeof description == "undefined" || description == ''){
                     description = title;
                     title = '';
@@ -429,7 +436,7 @@ function Chronoline(domElement, events, options) {
             }
             if(t.sections != null && t.sectionLabelsOnHover){
                 // some magic here to tie the event back to the section label element
-                var originalIndex = event.section;
+                var originalIndex = myEvent.section;
                 if(typeof originalIndex != "undefined"){
                     var newIndex = 0;
                     for(var i = 0; i < t.sections.length; i++){
