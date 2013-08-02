@@ -24,11 +24,23 @@ function addElemClass(paperType, node, newClass){
     }
 }
 
+// http://javascript.about.com/library/bldst.htm
+Date.prototype.stdTimezoneOffset = function() {
+    var jan = new Date(this.getFullYear(), 0, 1);
+    var jul = new Date(this.getFullYear(), 6, 1);
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+}
+Date.prototype.dstHourAdjustment = function() {
+    console.log((this.getTimezoneOffset() - this.stdTimezoneOffset()) / 60);
+    return (this.stdTimezoneOffset() - this.getTimezoneOffset()) / 60;
+}
+
 CL_HOUR = 12;
 // when we strip times, then we assume it's always the same
 // smack in the middle of the day so we're safe for rounding errors
 function stripTime(date){
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), CL_HOUR);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+            CL_HOUR + date.dstHourAdjustment());
 }
 
 function formatDate(date, formatString){
