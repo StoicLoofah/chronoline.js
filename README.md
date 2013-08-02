@@ -62,7 +62,7 @@ Parameters
 * title: required. The title, which will appear at the top of the section
 * section: optional. id of the section, to which events bind
 * attrs: recommended. You should at least pass a fill color to it to distinguish it from nothing
-* link: optional. Provide a URL, and if you click on an event, it'll navigate to the URL 
+* link: optional. Provide a URL, and if you click on an event, it'll navigate to the URL
 
 ```javascript
 // actually creating the timeline. Also nessary
@@ -80,7 +80,7 @@ Implementation notes
 * "px" is for pixels, "ms" is for milliseconds. Time is tracked by milliseconds (as Dates do in JS), and this is converted into pixels to be displayed
 * most aesthetics are options. Much other functionality can be modified by providing functions, such as the scrolling intervals
 * the smallest resolution you can get is days. In fact, all time information is stripped out of incoming dates
-* all calculations are done in UTC. I encountered some problems with time zones, and the easiest solution was to ignore them. This is presumably okay because we're not maintaining time zone information anyways
+* all calculations are done in your local time zone with daylight savings time removed. I tried UTC, but there were too many problems trying to normalize it
 * labels and hashes are only drawn as necessary with scrolling. There are severe performance problems (at least in Ubuntu Firefox) with drawing everything at once. Similarly, using goToDate to a distant date may also lag.
 
 Support
