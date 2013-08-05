@@ -1,4 +1,4 @@
-// chronoline.js v0.1.0
+// chronoline.js v0.1.1
 // by Kevin Leung for Zanbato, https://zanbato.com
 // MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
 
@@ -115,7 +115,7 @@ function forwardWeek(date){
 }
 
 function Chronoline(domElement, events, options) {
-    this.VERSION = "0.1.0";
+    this.VERSION = "0.1.1";
 
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
@@ -426,14 +426,17 @@ function Chronoline(domElement, events, options) {
             addElemClass(t.paperType, elem.node, 'chronoline-event');
 
             elem.attr('title', myEvent.title);
-            if(t.tooltips && !jQuery.browser.msie){
+            if(t.tooltips){
                 var description = myEvent.description;
                 var title = myEvent.title;
                 if(typeof description == "undefined" || description == ''){
                     description = title;
                     title = '';
                 }
-                jQuery(elem.node).parent().qtip({
+                var $node = jQuery(elem.node);
+                if(Raphael.type == 'SVG')
+                    $node = $node.parent();
+                $node.qtip({
                     content: {
                         title: title,
                         text: description

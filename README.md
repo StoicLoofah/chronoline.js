@@ -91,7 +91,7 @@ I mostly don't know what versions of various components are required. So far, I 
 * [qTip2](http://qtip2.com/): 2.0.1
 
 Browser support is:
-* Internet Explorer 8+ (except the tooltips)
+* Internet Explorer 8+
 * Firefox 12+
 * Chrome 18+
 
