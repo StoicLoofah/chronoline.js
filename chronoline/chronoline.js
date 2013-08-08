@@ -10,8 +10,6 @@
 
 DAY_IN_MILLISECONDS = 86400000;
 
-var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
 requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function( callback, element){
     return window.setTimeout(function(){callback(+new Date());}, 1000 / 60);
 };
@@ -43,27 +41,44 @@ Date.prototype.stripTime = function(){
     this.setMilliseconds(0);
 }
 
-function formatDate(date, formatString){
-    // done in the style of c's strftime
-    // TODO slowly adding in new parts to this
-    // note that this also doesn't escape things properly. sorry
+Date.MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+Date.DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+Date.prototype.formatDate = function(formatString){
+    /*
+     * done in the style of c's strftime
+     * http://www.cplusplus.com/reference/ctime/strftime/
+     * TODO slowly adding in new parts to this
+     * note that this also doesn't escape things properly. sorry
+     * if you need more power here - https://github.com/samsonjs/strftime
+     */
     var ret = formatString;
     if(formatString.indexOf('%d') != -1){
-        var dateNum = date.getDate().toString();
+        var dateNum = this.getDate().toString();
         if(dateNum.length < 2)
             dateNum = '0' + dateNum;
         ret = ret.replace('%d', dateNum);
     }
     if(formatString.indexOf('%b') != -1){
-        var month = monthNames[date.getMonth()].substring(0, 3);
+        var month = Date.MONTH_NAMES[this.getMonth()].substring(0, 3);
         ret = ret.replace('%b', month);
     }
     if(formatString.indexOf('%Y') != -1){
-        ret = ret.replace('%Y', date.getFullYear());
+        ret = ret.replace('%Y', this.getFullYear());
+    }
+    if(formatString.indexOf('%a') != -1){
+        var day = Date.DAY_NAMES[this.getDay()].substring(0, 3);
+        ret = ret.replace('%a', day);
     }
 
     return ret;
 }
+
+function strftime(formatString, date) {
+    // for convenience
+    return date.formatDate(formatString);
+}
+
 
 function getLeft(elem){
     // parseInt automatically tosses the "px" off the end
@@ -495,7 +510,7 @@ function Chronoline(domElement, events, options) {
             var curDate = new Date(year, 0, 1);
             curDate.stripTime();
             var x = t.msToPx(curDate.getTime());
-            var subSubLabel = t.paper.text(x, t.subSubLabelY, formatDate(curDate, '%Y').toUpperCase());
+            var subSubLabel = t.paper.text(x, t.subSubLabelY, curDate.formatDate('%Y').toUpperCase());
             subSubLabel.attr(t.fontAttrs);
             subSubLabel.attr(t.subSubLabelAttrs);
             if(t.floatingSubSubLabels){
@@ -526,18 +541,14 @@ function Chronoline(domElement, events, options) {
 
             // the labels directly below the hashes
             if(t.labelInterval == null || t.labelInterval(curDate)){
-                var displayDate = String(day);
-                if(displayDate.length == 1)
-                    displayDate = '0' + displayDate;
-
-                var label = t.paper.text(x, t.labelY, displayDate);
+                var label = t.paper.text(x, t.labelY, curDate.formatDate(t.labelFormat));
                 label.attr(t.fontAttrs);
             }
 
             // special markers for today
             if(t.markToday && curMs == t.today.getTime()){
                 if(t.markToday == 'labelBox'){
-                    label.attr({'text': label.attr('text') + '\n' + formatDate(curDate, '%b').toUpperCase(),
+                    label.attr({'text': label.attr('text') + '\n' + curDate.formatDate('%b').toUpperCase(),
                                 'font-size': t.fontAttrs['font-size'] + 2,
                                 'y': t.bottomHashY + t.fontAttrs['font-size'] + 5});
                     var bbox = label.getBBox();
@@ -552,7 +563,7 @@ function Chronoline(domElement, events, options) {
 
             // sublabels. These can float
             if(day == 1 && t.subLabel == 'month'){
-                var subLabel = t.paper.text(x, t.subLabelY, formatDate(curDate, '%b').toUpperCase());
+                var subLabel = t.paper.text(x, t.subLabelY, curDate.formatDate('%b').toUpperCase());
                 subLabel.attr(t.fontAttrs);
                 subLabel.attr(t.subLabelAttrs);
                 if(t.floatingSubLabels){
