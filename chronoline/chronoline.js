@@ -305,6 +305,8 @@ function Chronoline(domElement, events, options) {
     // this ratio converts a time into a px position
     t.visibleWidth = t.domElement.clientWidth;
     if(t.fitVisibleSpan) {
+        t.startDate = new Date(t.startDate.getTime() - DAY_IN_MILLISECONDS);
+        t.endDate = new Date(t.endDate.getTime() + DAY_IN_MILLISECONDS);
         t.pxRatio = t.visibleWidth / (t.endDate - t.startDate);
     } else {
         t.pxRatio = t.visibleWidth / t.visibleSpan;
