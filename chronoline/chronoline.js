@@ -139,6 +139,7 @@ function Chronoline(domElement, events, options) {
 
         visibleSpan: 2592000000,  // in milliseconds,
         timelinePadding: 0, // in ms. Adds this much time to the front and back to get some space
+        fitVisibleSpan: false, // condense the entire span to be visible without scrolling
 
         topMargin: 40,  // overhead space on the canvas. useful for additional content
         eventHeight: 5,  // how tall event events are
@@ -303,7 +304,11 @@ function Chronoline(domElement, events, options) {
 
     // this ratio converts a time into a px position
     t.visibleWidth = t.domElement.clientWidth;
-    t.pxRatio = t.visibleWidth / t.visibleSpan;
+    if(t.fitVisibleSpan) {
+        t.pxRatio = t.visibleWidth / (t.endDate - t.startDate);
+    } else {
+        t.pxRatio = t.visibleWidth / t.visibleSpan;
+    }
     t.totalWidth = t.pxRatio * (t.endDate.getTime() - t.startDate.getTime());
     t.maxLeftPx = t.totalWidth - t.visibleWidth;
 
