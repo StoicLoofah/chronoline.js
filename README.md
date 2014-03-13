@@ -26,7 +26,7 @@ var events = [
 ```
 
 Parameters
-* dates: required. either a single date or a pair of dates if it covers a span of time.
+* dates: required. either a single date or a pair of dates if it covers a span of time. Note that these are JavaScript dates, where January is 0, and December is 11.
 * title: required. the hover text you get on the title.
 * section: optional. If you choose to add sections (see below), then this will be the id of the section to associate this event with. Currently, this is only being used to correct hover states, but there may be more functionality in the future
 * attrs: optional. any raphael.js attrs that you want applied to this specific element. If you have general attrs to apply to events, us the eventAttrs option to initializing Chronoline.
