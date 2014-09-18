@@ -75,6 +75,16 @@ Parameters
 2. the events array
 3. options. See the defaults in chronoline.js to see all available options. There are a lot, and I only anticipate them growing.
 
+Available functions
+-------------------
+There aren't a lot obviously for external use, but there are various ones implemented. The usable ones are:
+* chronoline.goToDate(date, position). This shifts the visible window to the date specified. The position is negative for left, 0 for middle, and positive for right
+* chronoeline.goToToday(). Easy wrapper around goToDate
+* chronoline.resize(visibleSpan). Visible span is specified in milliseconds. This allows you to resize entire timeline. Note that this function isn't particularly efficient: it resizes the entire thing.
+* chronoline.zoom(zoomFactor). 0 < zoomFactor < 1 for zooming out, zoomFactor = 1 for no change, zoomFactor > 1 for zooming in. This is a wrapper around resize
+* chronoline.getLeftTime(). Gets the time in milliseconds for the visible left edge
+* chronoline.getRightTime(). Gets the time in milliseconds for the visible right edge
+
 Implementation notes
 --------------------
 * "px" is for pixels, "ms" is for milliseconds. Time is tracked by milliseconds (as Dates do in JS), and this is converted into pixels to be displayed
@@ -97,7 +107,7 @@ Browser support is:
 
 Credits
 -------
-* Built by and for [Zanbato](https://zanbato.com).
+* Built by and for [Zanbato](https://www.zanbato.com).
 * Developed by Kevin Leung ([website](http://kevinleung.com), [github](https://github.com/StoicLoofah))
 * Designed by Deny Khoung ([twitter](http://twitter.com/#!/denykhoung), [github](https://github.com/denyk))
 * Additional help from Dan Settel and Brandon Kwock

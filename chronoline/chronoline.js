@@ -206,6 +206,11 @@ function Chronoline(domElement, events, options) {
     t.floatingSectionLabels &= t.sections != null;
     t.sectionLabelsOnHover &= t.sections != null;
 
+    // this is hacky, but necessary for backwards-compability
+    t.originalStartDate = t.startDate;
+    t.originalEndDate = t.endDate;
+    t.originalDefaultStartDate = t.defaultStartDate;
+
     // HTML elements to put everything in
     t.domElement = domElement;
 
@@ -247,73 +252,6 @@ function Chronoline(domElement, events, options) {
         t.sections.sort(t.sortEvents);
     }
 
-
-    // CALCULATING MORE THINGS
-    // generating relevant dates
-    t.today = new Date(Date.now());
-    t.today.stripTime();
-
-    if(t.defaultStartDate == null){
-        t.defaultStartDate = t.today;
-    }
-
-    if(t.startDate == null){
-        if(t.events.length > 0){
-            t.startDate = t.events[0].dates[0];
-            for(var i = 1; i < t.events.length; i++)
-                if(t.events[i].dates[0] < t.startDate)
-                    t.startDate = t.events[i].dates[0];
-        } else if(t.sections.length > 0) {
-            t.startDate = t.sections[0].dates[0];
-            for(var i = 0; i < t.sections.length; i++){
-                if(t.sections[i].dates[0] < t.startDate)
-                    t.startDate = t.sections[i].dates[0];
-            }
-        } else {
-            return;
-        }
-    }
-    t.startDate.stripTime();
-
-    if(t.startDate > t.defaultStartDate)
-        t.startDate = t.defaultStartDate;
-    t.startDate = new Date(t.startDate.getTime() - t.timelinePadding);
-    t.startTime = t.startDate.getTime();
-
-    if(t.endDate == null){
-        if(t.events.length > 0){
-            t.endDate = getEndDate(t.events[0].dates);
-            for(var i = 1; i < t.events.length; i++)
-                if(getEndDate(t.events[i].dates) > t.endDate)
-                    t.endDate = getEndDate(t.events[i].dates);
-        } else if(t.sections.length > 0) {
-            t.endDate = t.sections[0].dates[1];
-            for(var i = 0; i < t.sections.length; i++){
-                if(t.sections[i].dates[1] > t.endDate)
-                    t.endDate = t.sections[i].dates[1];
-            }
-        } else {
-            return;
-        }
-    }
-    if(t.endDate < t.defaultStartDate)
-        t.endDate = t.defaultStartDate;
-    t.endDate = new Date(Math.max(t.endDate.getTime(), t.startDate.getTime() + t.visibleSpan) + t.timelinePadding);
-    t.endDate.stripTime();
-
-
-    // this ratio converts a time into a px position
-    t.visibleWidth = t.domElement.clientWidth;
-    if(t.fitVisibleSpan) {
-        t.startDate = new Date(t.startDate.getTime() - DAY_IN_MILLISECONDS);
-        t.endDate = new Date(t.endDate.getTime() + DAY_IN_MILLISECONDS);
-        t.pxRatio = t.visibleWidth / (t.endDate - t.startDate);
-    } else {
-        t.pxRatio = t.visibleWidth / t.visibleSpan;
-    }
-    t.totalWidth = t.pxRatio * (t.endDate.getTime() - t.startDate.getTime());
-    t.maxLeftPx = t.totalWidth - t.visibleWidth;
-
     // 2 handy utility functions
     t.pxToMs = function(px){
         return t.startTime + px / t.pxRatio;
@@ -322,217 +260,316 @@ function Chronoline(domElement, events, options) {
         return (ms - t.startTime) * t.pxRatio;
     }
 
-    // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
-    // TODO
-    // this is a greedy algo that definitely isn't optimal
-    // it at least needs to find the latest row that still fits
-    // this, however, may cause very strange behavior (everything being on the 2nd line),
-    // so I'm going to prefer this in the short term
-
-    // calculated here so it can be used in splitting dates
-    t.circleRadius = t.eventHeight / 2;
-
-    t.eventRows = [[]];
-    t.rowLastPxs = [0];
-
-    for(var i = 0; i < t.events.length; i++){
-        var found = false;
-        var startPx = t.msToPx(t.events[i].dates[0].getTime()) - t.circleRadius;
-        for(var j = 0; j < t.eventRows.length; j++){
-            if(t.rowLastPxs[j] < startPx){
-                t.eventRows[j].push(t.events[i]);
-                t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius;
-                found = true;
-                break;
-            }
-        }
-        if(!found){
-            t.eventRows.push([t.events[i]]);
-            t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius);
-        }
+    t.resize = function(visibleSpan) {
+        // useful for zooming
+        t.visibleSpan = visibleSpan;
+        t.init();
     }
 
-    // a few more calculations and creation
-    t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
-    t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
-
-    // creating canvas pieces
-    t.myCanvas = document.createElement('div');
-    t.myCanvas.className = 'chronoline-canvas';
-    t.wrapper.appendChild(t.myCanvas);
-
-    t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
-    t.paperType = t.paper.raphael.type;
-    t.paperElem = t.myCanvas.childNodes[0];
-
-    // DRAWING
-    t.floatingSet = t.paper.set();
-    t.sectionLabelSet = t.paper.set();
-    // drawing sections
-    if(t.sections != null){
-        for(var i = 0; i < t.sections.length; i++){
-            var section = t.sections[i];
-            var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
-            var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
-            var elem = t.paper.rect(startX, 0, width, t.totalHeight);
-            elem.attr('stroke-width', 0);
-            elem.attr('stroke', '#ffffff');
-            if(typeof section.attrs != "undefined"){
-                elem.attr(section.attrs);
-            }
-            var sectionLabel = t.paper.text(startX + 10, 10, section.title);
-            sectionLabel.attr('text-anchor', 'start');
-            sectionLabel.attr(t.sectionLabelAttrs);
-            if(t.floatingSectionLabels){
-                // bounds determine how far things can float
-                sectionLabel.data('left-bound', startX + 10);
-                sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
-                t.floatingSet.push(sectionLabel);
-                t.sectionLabelSet.push(sectionLabel);
-            }
-
-            elem.data('label', sectionLabel);
-
-            if(t.sectionLabelsOnHover){
-                elem.hover(function(){this.data('label').animate({opacity: 1}, 200);},
-                           function(){this.data('label').animate({opacity: 0}, 200);});
-                sectionLabel.hover(function(){this.animate({opacity: 1}, 200);},
-                                   function(){this.animate({opacity: 0}, 200);});
-                sectionLabel.attr('opacity', 0);
-            }
-
-        }
+    t.zoom = function(zoomFactor) {
+        t.resize(t.visibleSpan / zoomFactor);
     }
 
-    // put all of these in front of the sections
-    t.sectionLabelSet.forEach(function(label){
-        label.toFront();
-    });
+    t.init = function() {
+        // CALCULATING MORE THINGS
+        // generating relevant dates
+        t.today = new Date(Date.now());
+        t.today.stripTime();
 
-    // drawing events
-    for(var row = 0; row < t.eventRows.length; row++){
-        var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
-        for(var col = 0; col < t.eventRows[row].length; col++){
-            var myEvent = t.eventRows[row][col];
-            var startX = (myEvent.dates[0].getTime() - t.startTime) * t.pxRatio;
-            var elem = null;
-            if(myEvent.dates.length == 1){  // it's a single point
-                elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
-            } else {  // it's a range
-                var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
-                // left rounded corner
-                var leftCircle = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
-                if(typeof myEvent.attrs != "undefined"){
-                    leftCircle.attr(myEvent.attrs);
+        t.startDate = t.originalStartDate;
+        t.endDate = t.originalEndDate;
+        t.defaultStartDate = t.originalDefaultStartDate;
+
+        if(t.defaultStartDate == null){
+            t.defaultStartDate = t.today;
+        }
+
+        if(t.startDate == null){
+            if(t.events.length > 0){
+                t.startDate = t.events[0].dates[0];
+                for(var i = 1; i < t.events.length; i++)
+                    if(t.events[i].dates[0] < t.startDate)
+                        t.startDate = t.events[i].dates[0];
+            } else if(t.sections.length > 0) {
+                t.startDate = t.sections[0].dates[0];
+                for(var i = 0; i < t.sections.length; i++){
+                    if(t.sections[i].dates[0] < t.startDate)
+                        t.startDate = t.sections[i].dates[0];
                 }
-                addElemClass(t.paperType, leftCircle.node, 'chronoline-event');
-                // right rounded corner
-                var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
-                if(typeof myEvent.attrs != "undefined"){
-                    rightCircle.attr(myEvent.attrs);
+            } else {
+                return;
+            }
+        }
+        t.startDate.stripTime();
+
+        if(t.startDate > t.defaultStartDate)
+            t.startDate = t.defaultStartDate;
+        t.startDate = new Date(t.startDate.getTime() - t.timelinePadding);
+        t.startTime = t.startDate.getTime();
+
+        if(t.endDate == null){
+            if(t.events.length > 0){
+                t.endDate = getEndDate(t.events[0].dates);
+                for(var i = 1; i < t.events.length; i++)
+                    if(getEndDate(t.events[i].dates) > t.endDate)
+                        t.endDate = getEndDate(t.events[i].dates);
+            } else if(t.sections.length > 0) {
+                t.endDate = t.sections[0].dates[1];
+                for(var i = 0; i < t.sections.length; i++){
+                    if(t.sections[i].dates[1] > t.endDate)
+                        t.endDate = t.sections[i].dates[1];
                 }
-                addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
-                elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
+            } else {
+                return;
             }
+        }
+        if(t.endDate < t.defaultStartDate) {
+            t.endDate = t.defaultStartDate;
+        }
+        t.endDate = new Date(Math.max(t.endDate.getTime(), t.startDate.getTime() + t.visibleSpan) + t.timelinePadding);
+        t.endDate.stripTime();
 
-            if(typeof myEvent.link != 'undefined') {
-                elem.data('link', myEvent.link);
-                elem.click(function(){
-                    window.location.href = this.data('link');
-                });
-            }
 
-            if(typeof myEvent.attrs != "undefined"){
-                elem.attr(myEvent.attrs);
-            }
-            addElemClass(t.paperType, elem.node, 'chronoline-event');
+        // this ratio converts a time into a px position
+        t.visibleWidth = t.domElement.clientWidth;
+        if(t.fitVisibleSpan) {
+            t.startDate = new Date(t.startDate.getTime() - DAY_IN_MILLISECONDS);
+            t.endDate = new Date(t.endDate.getTime() + DAY_IN_MILLISECONDS);
+            t.pxRatio = t.visibleWidth / (t.endDate - t.startDate);
+        } else {
+            t.pxRatio = t.visibleWidth / t.visibleSpan;
+        }
+        t.totalWidth = t.pxRatio * (t.endDate.getTime() - t.startDate.getTime());
+        t.maxLeftPx = t.totalWidth - t.visibleWidth;
 
-            elem.attr('title', myEvent.title);
-            if(t.tooltips){
-                var description = myEvent.description;
-                var title = myEvent.title;
-                if(typeof description == "undefined" || description == ''){
-                    description = title;
-                    title = '';
+        // SPLIT THE DATES INTO THE ROW THAT THEY BELONG TO
+        // TODO
+        // this is a greedy algo that definitely isn't optimal
+        // it at least needs to find the latest row that still fits
+        // this, however, may cause very strange behavior (everything being on the 2nd line),
+        // so I'm going to prefer this in the short term
+
+        // calculated here so it can be used in splitting dates
+        t.circleRadius = t.eventHeight / 2;
+
+        t.eventRows = [[]];
+        t.rowLastPxs = [0];
+
+        for(var i = 0; i < t.events.length; i++){
+            var found = false;
+            var startPx = t.msToPx(t.events[i].dates[0].getTime()) - t.circleRadius;
+            for(var j = 0; j < t.eventRows.length; j++){
+                if(t.rowLastPxs[j] < startPx){
+                    t.eventRows[j].push(t.events[i]);
+                    t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius;
+                    found = true;
+                    break;
                 }
-                var $node = jQuery(elem.node);
-                if(Raphael.type == 'SVG')
-                    $node = $node.parent();
-                $node.qtip({
-                    content: {
-                        title: title,
-                        text: description
-                    },
-                    position: {
-                        my: 'top left',
-                        target: 'mouse',
-                        viewport: jQuery(window), // Keep it on-screen at all times if possible
-                        adjust: {
-                            x: 10,  y: 10
-                        }
-                    },
-                    hide: {
-                        fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
-                    },
-                    style: {
-                        classes: 'qtip-shadow qtip-dark qtip-rounded'
+            }
+            if(!found){
+                t.eventRows.push([t.events[i]]);
+                t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius);
+            }
+        }
+
+        // a few more calculations and creation
+        t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
+        t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
+
+        // creating canvas pieces
+        if(t.myCanvas) {
+            // destroy the old one
+            t.wrapper.removeChild(t.myCanvas);
+        }
+        t.myCanvas = document.createElement('div');
+        t.myCanvas.className = 'chronoline-canvas';
+        t.wrapper.appendChild(t.myCanvas);
+
+        t.paper = Raphael(t.myCanvas, t.totalWidth, t.totalHeight);
+        t.paperType = t.paper.raphael.type;
+        t.paperElem = t.myCanvas.childNodes[0];
+
+        // DRAWING
+        t.floatingSet = t.paper.set();
+        t.sectionLabelSet = t.paper.set();
+        // drawing sections
+        if(t.sections != null){
+            for(var i = 0; i < t.sections.length; i++){
+                var section = t.sections[i];
+                var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
+                var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
+                var elem = t.paper.rect(startX, 0, width, t.totalHeight);
+                elem.attr('stroke-width', 0);
+                elem.attr('stroke', '#ffffff');
+                if(typeof section.attrs != "undefined"){
+                    elem.attr(section.attrs);
+                }
+                var sectionLabel = t.paper.text(startX + 10, 10, section.title);
+                sectionLabel.attr('text-anchor', 'start');
+                sectionLabel.attr(t.sectionLabelAttrs);
+                if(t.floatingSectionLabels){
+                    // bounds determine how far things can float
+                    sectionLabel.data('left-bound', startX + 10);
+                    sectionLabel.data('right-bound', startX + width - sectionLabel.attr('width'));
+                    t.floatingSet.push(sectionLabel);
+                    t.sectionLabelSet.push(sectionLabel);
+                }
+
+                elem.data('label', sectionLabel);
+
+                if(t.sectionLabelsOnHover){
+                    elem.hover(function(){this.data('label').animate({opacity: 1}, 200);},
+                               function(){this.data('label').animate({opacity: 0}, 200);});
+                    sectionLabel.hover(function(){this.animate({opacity: 1}, 200);},
+                                       function(){this.animate({opacity: 0}, 200);});
+                    sectionLabel.attr('opacity', 0);
+                }
+
+            }
+        }
+
+        // put all of these in front of the sections
+        t.sectionLabelSet.forEach(function(label){
+            label.toFront();
+        });
+
+        // drawing events
+        for(var row = 0; row < t.eventRows.length; row++){
+            var upperY = t.totalHeight - t.dateLabelHeight - (row + 1) * (t.eventMargin + t.eventHeight);
+            for(var col = 0; col < t.eventRows[row].length; col++){
+                var myEvent = t.eventRows[row][col];
+                var startX = (myEvent.dates[0].getTime() - t.startTime) * t.pxRatio;
+                var elem = null;
+                if(myEvent.dates.length == 1){  // it's a single point
+                    elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                } else {  // it's a range
+                    var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
+                    // left rounded corner
+                    var leftCircle = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                    if(typeof myEvent.attrs != "undefined"){
+                        leftCircle.attr(myEvent.attrs);
                     }
-                });
-            }
-            if(t.sections != null && t.sectionLabelsOnHover){
-                // some magic here to tie the event back to the section label element
-                var originalIndex = myEvent.section;
-                if(typeof originalIndex != "undefined"){
-                    var newIndex = 0;
-                    for(var i = 0; i < t.sections.length; i++){
-                        if(t.sections[i].section == originalIndex){
-                            elem.data('sectionLabel', t.sectionLabelSet[i]);
-                            break;
-                        }
+                    addElemClass(t.paperType, leftCircle.node, 'chronoline-event');
+                    // right rounded corner
+                    var rightCircle = t.paper.circle(startX + width, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                    if(typeof myEvent.attrs != "undefined"){
+                        rightCircle.attr(myEvent.attrs);
                     }
-                    elem.hover(function(){this.data('sectionLabel').animate({opacity: 1}, 200);},
-                               function(){this.data('sectionLabel').animate({opacity: 0}, 200);});
+                    addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
+                    elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
+                }
+
+                if(typeof myEvent.link != 'undefined') {
+                    elem.data('link', myEvent.link);
+                    elem.click(function(){
+                        window.location.href = this.data('link');
+                    });
+                }
+
+                if(typeof myEvent.attrs != "undefined"){
+                    elem.attr(myEvent.attrs);
+                }
+                addElemClass(t.paperType, elem.node, 'chronoline-event');
+
+                elem.attr('title', myEvent.title);
+                if(t.tooltips){
+                    var description = myEvent.description;
+                    var title = myEvent.title;
+                    if(typeof description == "undefined" || description == ''){
+                        description = title;
+                        title = '';
+                    }
+                    var $node = jQuery(elem.node);
+                    if(Raphael.type == 'SVG')
+                        $node = $node.parent();
+                    $node.qtip({
+                        content: {
+                            title: title,
+                            text: description
+                        },
+                        position: {
+                            my: 'top left',
+                            target: 'mouse',
+                            viewport: jQuery(window), // Keep it on-screen at all times if possible
+                            adjust: {
+                                x: 10,  y: 10
+                            }
+                        },
+                        hide: {
+                            fixed: true // Helps to prevent the tooltip from hiding ocassionally when tracking!
+                        },
+                        style: {
+                            classes: 'qtip-shadow qtip-dark qtip-rounded'
+                        }
+                    });
+                }
+                if(t.sections != null && t.sectionLabelsOnHover){
+                    // some magic here to tie the event back to the section label element
+                    var originalIndex = myEvent.section;
+                    if(typeof originalIndex != "undefined"){
+                        var newIndex = 0;
+                        for(var i = 0; i < t.sections.length; i++){
+                            if(t.sections[i].section == originalIndex){
+                                elem.data('sectionLabel', t.sectionLabelSet[i]);
+                                break;
+                            }
+                        }
+                        elem.hover(function(){this.data('sectionLabel').animate({opacity: 1}, 200);},
+                                   function(){this.data('sectionLabel').animate({opacity: 0}, 200);});
+                    }
                 }
             }
         }
-    }
 
-    // calculated ahead of time
-    var dateLineY = t.totalHeight - t.dateLabelHeight;
-    var baseline = t.paper.path('M0,' + dateLineY + 'L' + t.totalWidth + ',' + dateLineY);
-    baseline.attr('stroke', t.hashColor);
+        // calculated ahead of time
+        t.dateLineY = t.totalHeight - t.dateLabelHeight;
+        var baseline = t.paper.path('M0,' + t.dateLineY + 'L' + t.totalWidth + ',' + t.dateLineY);
+        baseline.attr('stroke', t.hashColor);
 
-    t.bottomHashY = dateLineY + t.hashLength;
-    t.labelY = t.bottomHashY + t.fontAttrs['font-size'];
-    t.subLabelY = t.bottomHashY + t.fontAttrs['font-size'] * 2 + t.subLabelMargin;
-    t.subSubLabelY = t.subLabelY + t.fontAttrs['font-size'] + t.subSubLabelMargin;
+        t.bottomHashY = t.dateLineY + t.hashLength;
+        t.labelY = t.bottomHashY + t.fontAttrs['font-size'];
+        t.subLabelY = t.bottomHashY + t.fontAttrs['font-size'] * 2 + t.subLabelMargin;
+        t.subSubLabelY = t.subLabelY + t.fontAttrs['font-size'] + t.subSubLabelMargin;
 
-    // DATE LABELS
-    // only a helper b/c it works within a specific range
+        // DATE LABELS
+        // only a helper b/c it works within a specific range
 
-    // subSublabels. These can float
-    if(t.subSubLabel == 'year'){
-        var endYear = t.endDate.getFullYear();
-        for(var year = t.startDate.getFullYear(); year <= endYear; year++){
-            var curDate = new Date(year, 0, 1);
-            curDate.stripTime();
-            var x = t.msToPx(curDate.getTime());
-            var subSubLabel = t.paper.text(x, t.subSubLabelY, curDate.formatDate('%Y').toUpperCase());
-            subSubLabel.attr(t.fontAttrs);
-            subSubLabel.attr(t.subSubLabelAttrs);
-            if(t.floatingSubSubLabels){
-                // bounds determine how far things can float
-                subSubLabel.data('left-bound', x);
-                var endOfYear = new Date(year, 11, 31);
-                endOfYear.stripTime();
-                subSubLabel.data('right-bound',
-                                 Math.min((endOfYear.getTime() - t.startTime) * t.pxRatio - 5,
-                                          t.totalWidth));
-                t.floatingSet.push(subSubLabel);
+        // subSublabels. These can float
+        if(t.subSubLabel == 'year'){
+            var endYear = t.endDate.getFullYear();
+            for(var year = t.startDate.getFullYear(); year <= endYear; year++){
+                var curDate = new Date(year, 0, 1);
+                curDate.stripTime();
+                var x = t.msToPx(curDate.getTime());
+                var subSubLabel = t.paper.text(x, t.subSubLabelY, curDate.formatDate('%Y').toUpperCase());
+                subSubLabel.attr(t.fontAttrs);
+                subSubLabel.attr(t.subSubLabelAttrs);
+                if(t.floatingSubSubLabels){
+                    // bounds determine how far things can float
+                    subSubLabel.data('left-bound', x);
+                    var endOfYear = new Date(year, 11, 31);
+                    endOfYear.stripTime();
+                    subSubLabel.data('right-bound',
+                                     Math.min((endOfYear.getTime() - t.startTime) * t.pxRatio - 5,
+                                              t.totalWidth));
+                    t.floatingSet.push(subSubLabel);
+                }
             }
         }
-    }
+        if(t.scrollable) {
+            t.initScrollable();
+        }
+        if(t.draggable) {
+            t.initDraggable();
+        }
 
+        // set the default position
+        t.drawnStartMs = null;
+        t.drawnEndMs = null;
+        t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pxRatio + 20 + 'px';
+        t.goToPx(getLeft(t.paperElem));
+        t.myCanvas.style.height = t.totalHeight + 'px';
+    }
 
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
@@ -542,7 +579,7 @@ function Chronoline(domElement, events, options) {
 
             // the little hashes
             if(t.hashInterval == null || t.hashInterval(curDate)){
-                var hash = t.paper.path('M' + x + ',' + dateLineY + 'L' + x + ',' + t.bottomHashY);
+                var hash = t.paper.path('M' + x + ',' + t.dateLineY + 'L' + x + ',' + t.bottomHashY);
                 hash.attr('stroke', t.hashColor);
             }
 
@@ -563,7 +600,7 @@ function Chronoline(domElement, events, options) {
                     labelBox.attr('fill', '90-#f4f4f4-#e8e8e8');
                     labelBox.insertBefore(label);
                 }else if(t.markToday == 'line'){
-                    var line = t.paper.path('M' + x + ',0L' + x + ',' + dateLineY);
+                    var line = t.paper.path('M' + x + ',0L' + x + ',' + t.dateLineY);
                     line.attr(t.todayAttrs);
                 }
             }
@@ -732,9 +769,10 @@ function Chronoline(domElement, events, options) {
         }
     }
 
-    // CREATING THE NAVIGATION
-    // this is boring
-    if(t.scrollable){
+    t.initScrollable = function(){
+        if(t.leftControl) {
+            t.wrapper.removeChild(t.leftControl);
+        }
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
         t.leftControl.style.marginTop = t.topMargin + 'px';
@@ -748,6 +786,9 @@ function Chronoline(domElement, events, options) {
         t.leftControl.style.height =  controlHeight + 'px';
         leftIcon.style.marginTop = (controlHeight - 15) / 2 + 'px';
 
+        if(t.rightControl) {
+            t.wrapper.removeChild(t.rightControl);
+        }
         t.rightControl = document.createElement('div');
         t.rightControl.className = 'chronoline-right';
         t.rightControl.style.marginTop = t.topMargin + 'px';
@@ -844,14 +885,12 @@ function Chronoline(domElement, events, options) {
             t.leftControl.onclick = t.scrollLeftDiscrete;
             t.rightControl.onclick = t.scrollLeftDiscrete;
         }
-
     }
 
-    // ENABLING DRAGGING
-    // i'm not using raphael.js built-in dragging since this is for the entire canvas
-    // also, i didn't see that function before I wrote this
-    // using jQuery to get mouseleave to work cross-browser
-    if(t.draggable){
+    t.initDraggable = function() {
+        // i'm not using raphael.js built-in dragging since this is for the entire canvas
+        // also, i didn't see that function before I wrote this
+        // using jQuery to get mouseleave to work cross-browser
         t.stopDragging = function(e){
             jQuery(t.wrapper).removeClass('dragging')
                 .unbind('mousemove', t.mouseMoved)
@@ -891,8 +930,5 @@ function Chronoline(domElement, events, options) {
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
 
-    // set the default position
-    t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pxRatio + 20 + 'px';
-    t.goToPx(getLeft(t.paperElem));
-    t.myCanvas.style.height = t.totalHeight + 'px';
+    t.init();
 }
