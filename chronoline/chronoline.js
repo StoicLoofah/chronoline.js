@@ -18,7 +18,7 @@ function addElemClass(paperType, node, newClass){
     if(paperType == 'SVG'){
         node.setAttribute('class', newClass);
     } else {
-        node.className += ' ' + newClass
+        node.className += ' ' + newClass;
     }
 }
 
@@ -27,19 +27,19 @@ Date.prototype.stdTimezoneOffset = function() {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
     return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-}
+};
 Date.prototype.dstHourAdjustment = function() {
     return (this.stdTimezoneOffset() - this.getTimezoneOffset()) / 60;
-}
+};
 CL_HOUR = 12;
 Date.prototype.stripTime = function(){
     // this is a mutator, so be careful with it
     // when you get dates from external sources, copy the date first and then apply this fn
-    this.setHours(CL_HOUR + this.dstHourAdjustment())
+    this.setHours(CL_HOUR + this.dstHourAdjustment());
     this.setMinutes(0);
     this.setSeconds(0);
     this.setMilliseconds(0);
-}
+};
 
 Date.MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 Date.DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -72,7 +72,7 @@ Date.prototype.formatDate = function(formatString){
     }
 
     return ret;
-}
+};
 
 function strftime(formatString, date) {
     // for convenience
@@ -91,7 +91,7 @@ function getEndDate(dateArray){
 
 function isFifthDay(date){
     var day = date.getDate();
-    return (day == 1 || day % 5 == 0) && day != 30;
+    return (day == 1 || day % 5 === 0) && day != 30;
 }
 
 function isHalfMonth(date){
@@ -195,7 +195,7 @@ function Chronoline(domElement, events, options) {
 
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
-    }
+    };
     var t = this;
 
     // FILL DEFAULTS
@@ -203,8 +203,8 @@ function Chronoline(domElement, events, options) {
     for(var attrname in options){ t[attrname] = options[attrname];}
 
     // options shouldn't be on if there aren't any sections
-    t.floatingSectionLabels &= t.sections != null;
-    t.sectionLabelsOnHover &= t.sections != null;
+    t.floatingSectionLabels &= t.sections !== null;
+    t.sectionLabelsOnHover &= t.sections !== null;
 
     // this is hacky, but necessary for backwards-compability
     t.originalStartDate = t.startDate;
@@ -242,7 +242,7 @@ function Chronoline(domElement, events, options) {
     t.events.sort(t.sortEvents);
 
     // same thing for sections
-    if(t.sections != null){
+    if(t.sections !== null){
         for(var i = 0; i < t.sections.length; i++){
             for(var j = 0; j < t.sections[i].dates.length; j++){
                 t.sections[i].dates[j] = new Date(t.sections[i].dates[j].getTime());
@@ -255,20 +255,20 @@ function Chronoline(domElement, events, options) {
     // 2 handy utility functions
     t.pxToMs = function(px){
         return t.startTime + px / t.pxRatio;
-    }
+    };
     t.msToPx = function(ms){
         return (ms - t.startTime) * t.pxRatio;
-    }
+    };
 
     t.resize = function(visibleSpan) {
         // useful for zooming
         t.visibleSpan = visibleSpan;
         t.init();
-    }
+    };
 
     t.zoom = function(zoomFactor) {
         t.resize(t.visibleSpan / zoomFactor);
-    }
+    };
 
     t.init = function() {
         // CALCULATING MORE THINGS
@@ -280,11 +280,11 @@ function Chronoline(domElement, events, options) {
         t.endDate = t.originalEndDate;
         t.defaultStartDate = t.originalDefaultStartDate;
 
-        if(t.defaultStartDate == null){
+        if(t.defaultStartDate === null){
             t.defaultStartDate = t.today;
         }
 
-        if(t.startDate == null){
+        if(t.startDate === null){
             if(t.events.length > 0){
                 t.startDate = t.events[0].dates[0];
                 for(var i = 1; i < t.events.length; i++)
@@ -307,7 +307,7 @@ function Chronoline(domElement, events, options) {
         t.startDate = new Date(t.startDate.getTime() - t.timelinePadding);
         t.startTime = t.startDate.getTime();
 
-        if(t.endDate == null){
+        if(t.endDate === null){
             if(t.events.length > 0){
                 t.endDate = getEndDate(t.events[0].dates);
                 for(var i = 1; i < t.events.length; i++)
@@ -393,7 +393,7 @@ function Chronoline(domElement, events, options) {
         t.floatingSet = t.paper.set();
         t.sectionLabelSet = t.paper.set();
         // drawing sections
-        if(t.sections != null){
+        if(t.sections !== null){
             for(var i = 0; i < t.sections.length; i++){
                 var section = t.sections[i];
                 var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
@@ -475,7 +475,7 @@ function Chronoline(domElement, events, options) {
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
-                    if(typeof description == "undefined" || description == ''){
+                    if(typeof description == "undefined" || description === ''){
                         description = title;
                         title = '';
                     }
@@ -503,7 +503,7 @@ function Chronoline(domElement, events, options) {
                         }
                     });
                 }
-                if(t.sections != null && t.sectionLabelsOnHover){
+                if(t.sections !== null && t.sectionLabelsOnHover){
                     // some magic here to tie the event back to the section label element
                     var originalIndex = myEvent.section;
                     if(typeof originalIndex != "undefined"){
@@ -569,7 +569,7 @@ function Chronoline(domElement, events, options) {
         t.paperElem.style.left = - (t.defaultStartDate - t.startDate) * t.pxRatio + 20 + 'px';
         t.goToPx(getLeft(t.paperElem));
         t.myCanvas.style.height = t.totalHeight + 'px';
-    }
+    };
 
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
@@ -578,13 +578,13 @@ function Chronoline(domElement, events, options) {
             var x = t.msToPx(curMs);
 
             // the little hashes
-            if(t.hashInterval == null || t.hashInterval(curDate)){
+            if(t.hashInterval === null || t.hashInterval(curDate)){
                 var hash = t.paper.path('M' + x + ',' + t.dateLineY + 'L' + x + ',' + t.bottomHashY);
                 hash.attr('stroke', t.hashColor);
             }
 
             // the labels directly below the hashes
-            if(t.labelInterval == null || t.labelInterval(curDate)){
+            if(t.labelInterval === null || t.labelInterval(curDate)){
                 var label = t.paper.text(x, t.labelY, curDate.formatDate(t.labelFormat));
                 label.attr(t.fontAttrs);
             }
@@ -621,7 +621,7 @@ function Chronoline(domElement, events, options) {
                 }
             }
         }
-    }
+    };
 
 
     t.drawnStartMs = null;
@@ -640,7 +640,7 @@ function Chronoline(domElement, events, options) {
 
         var newEndMs = newEndDate.getTime();
 
-        if(t.drawnStartMs == null){  // first time
+        if(t.drawnStartMs === null){  // first time
             t.drawnStartMs = newStartMs;
             t.drawnEndMs = newEndMs;
             t.drawLabelsHelper(newStartMs, newEndMs);
@@ -660,7 +660,7 @@ function Chronoline(domElement, events, options) {
                 t.drawnEndMs = newEndMs;
             }
         }
-    }
+    };
 
     t.isMoving = false;
     t.goToPx = function(finalLeft, isAnimated, isLabelsDrawn) {
@@ -690,7 +690,7 @@ function Chronoline(domElement, events, options) {
 
         // hide scroll buttons if you're at the end
         if(t.scrollable){
-            if(finalLeft == 0){
+            if(finalLeft === 0){
                 t.leftControl.style.display = 'none';
                 t.isScrolling = false;
             } else {
@@ -723,7 +723,7 @@ function Chronoline(domElement, events, options) {
             var start = null;
             var elem = t.paperElem;
             function step(timestamp) {
-                if(start == null)
+                if(start === null)
                     start = timestamp;
                 var progress = (timestamp - start) / 200;
                 var pos = (finalLeft - left) * progress + left;
@@ -753,8 +753,8 @@ function Chronoline(domElement, events, options) {
             }
         }
 
-        return finalLeft != 0 && finalLeft != -t.maxLeftPx;
-    }
+        return finalLeft !== 0 && finalLeft != -t.maxLeftPx;
+    };
 
     t.goToDate = function(date, position){
         // position is negative for left, 0 for middle, positive for right
@@ -767,7 +767,7 @@ function Chronoline(domElement, events, options) {
         } else {
             t.goToPx(-t.msToPx(date.getTime()) + t.visibleWidth / 2);
         }
-    }
+    };
 
     t.initScrollable = function(){
         if(t.leftControl) {
@@ -817,7 +817,7 @@ function Chronoline(domElement, events, options) {
             t.timeoutId = -1;
 
             t.scrollLeftContinuous = function(timestamp){
-                if(t.scrollStart == null)
+                if(t.scrollStart === null)
                     t.scrollStart = timestamp;
                 if(t.isScrolling){
                     requestAnimationFrame(t.scrollLeftContinuous);
@@ -850,7 +850,7 @@ function Chronoline(domElement, events, options) {
 
 
             t.scrollRightContinuous = function(timestamp){
-                if(t.scrollStart == null)
+                if(t.scrollStart === null)
                     t.scrollStart = timestamp;
                 if(t.isScrolling){
                     requestAnimationFrame(t.scrollRightContinuous);
@@ -885,7 +885,7 @@ function Chronoline(domElement, events, options) {
             t.leftControl.onclick = t.scrollLeftDiscrete;
             t.rightControl.onclick = t.scrollLeftDiscrete;
         }
-    }
+    };
 
     t.initDraggable = function() {
         // i'm not using raphael.js built-in dragging since this is for the entire canvas
@@ -897,11 +897,11 @@ function Chronoline(domElement, events, options) {
                 .unbind('mouseleave', t.stopDragging)
                 .unbind('mouseup', t.stopDragging);
             t.drawLabels(-getLeft(t.paperElem));
-        }
+        };
 
         t.mouseMoved = function(e){
             t.goToPx(t.dragPaperStart - (t.dragMouseStart - e.pageX), false, false);
-        }
+        };
 
         t.wrapper.className += ' chronoline-draggable';
         jQuery(t.paperElem).mousedown(function(e){
@@ -913,7 +913,7 @@ function Chronoline(domElement, events, options) {
                 .bind('mouseleave', t.stopDragging)
                 .bind('mouseup', t.stopDragging);
         });
-    }
+    };
 
     t.goToToday = function(){
         // scrolls to put today in the middle
