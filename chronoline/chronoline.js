@@ -196,8 +196,6 @@ function Chronoline(domElement, events, options) {
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
         eventClick: function(){}, // called when user clicks on event, function(data)
-        sectionClick: function(){}, // called when user clicks on section, function(data, date) 
-        backgroundClick: function(){}, // called when user clicks on background, function(date)
     };
     var t = this;
 
@@ -427,13 +425,6 @@ function Chronoline(domElement, events, options) {
                                        function(){this.animate({opacity: 0}, 200);});
                     sectionLabel.attr('opacity', 0);
                 }
-
-                //add click event to section
-                /*elem.click(section,function(e){
-                    //todo set the date here
-                    var dt = new Date(2015,0,1)l
-                    sectionClick(e.data, dt );
-                });*/
 
             }
         }
