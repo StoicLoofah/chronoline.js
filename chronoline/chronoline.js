@@ -195,6 +195,9 @@ function Chronoline(domElement, events, options) {
 
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
+        eventClick: function(){}, // called when user clicks on event, function(data)
+        sectionClick: function(){}, // called when user clicks on section, function(data, date) 
+        backgroundClick: function(){}, // called when user clicks on background, function(date)
     };
     var t = this;
 
@@ -425,6 +428,13 @@ function Chronoline(domElement, events, options) {
                     sectionLabel.attr('opacity', 0);
                 }
 
+                //add click event to section
+                /*elem.click(section,function(e){
+                    //todo set the date here
+                    var dt = new Date(2015,0,1)l
+                    sectionClick(e.data, dt );
+                });*/
+
             }
         }
 
@@ -472,6 +482,7 @@ function Chronoline(domElement, events, options) {
                 addElemClass(t.paperType, elem.node, 'chronoline-event');
 
                 elem.attr('title', myEvent.title);
+                var $node = jQuery(elem.node);
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
@@ -479,7 +490,7 @@ function Chronoline(domElement, events, options) {
                         description = title;
                         title = '';
                     }
-                    var $node = jQuery(elem.node);
+                    
                     if(Raphael.type == 'SVG')
                         $node = $node.parent();
                     $node.qtip({
@@ -503,6 +514,11 @@ function Chronoline(domElement, events, options) {
                         }
                     });
                 }
+                //set the click event handler on the event 
+                $node.click(myEvent, function(e) {
+                    e.preventDefault();
+                    t.eventClick(e.data);
+                });
                 if(t.sections !== null && t.sectionLabelsOnHover){
                     // some magic here to tie the event back to the section label element
                     var originalIndex = myEvent.section;
