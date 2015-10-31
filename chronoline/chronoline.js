@@ -195,7 +195,8 @@ function Chronoline(domElement, events, options) {
 
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
-        eventClick: function(){}, // called when user clicks on event, function(data)
+        eventClick: function () { }, // called when user clicks on event, function(data)
+        eventDblClick: function () { }, // called when user double clicks on event, function(data)
     };
     var t = this;
 
@@ -447,6 +448,9 @@ function Chronoline(domElement, events, options) {
                         .data("eventData", myEvent)
                         .click(function () {
                             t.eventClick(this.data("eventData"));
+                        })
+                        .dblclick(function () {
+                            t.eventDblClick(this.data("eventData"));
                         });
                 } else {  // it's a range
                     var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
@@ -467,6 +471,9 @@ function Chronoline(domElement, events, options) {
                         .data("eventData", myEvent)
                         .click(function () {
                             t.eventClick(this.data("eventData"));
+                        })
+                        .dblclick(function () {
+                            t.eventDblClick(this.data("eventData"));
                         });
                 }
 

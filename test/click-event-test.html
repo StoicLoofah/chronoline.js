@@ -58,11 +58,14 @@
       $(document).ready(function(){
 
         //module( "event click test", {
-          test( "single event test",1,  function(assert) {
+          test( "single event test",2,  function(assert) {
             var timeline1 = new Chronoline(document.getElementById("target1"), oneEvent,
             {
               eventClick: function(data){
-                assert.equal(data,oneEvent[0],'event data equals event data.');
+                assert.equal(data,oneEvent[0],'single click test, event data equals event data.');
+              },
+              eventDblClick: function (data) {
+                  assert.equal(data, oneEvent[0], 'double click, event data equals event data.');
               }
             });
 
@@ -71,27 +74,47 @@
             $("#target1").find(".chronoline-event").each(function () {
                 this.dispatchEvent(evObj);
             });
-          });
-          test( "multiple event test, asset all the events are only called once.",events.length,  function(assert) {
-            var timeline2 = new Chronoline(document.getElementById("target2"), events,
-            {
-              eventClick: function(data){
-                for(var i =0, len = events.length;i<len;i++){
-                  // assert that all the events are only called once
-                  if(data === events[i]){
-                    assert.equal(data,events[i],'event data equals event data.');
-                    events[i] = null;
-                  }
-                }
-                
-              }
+            var evObjDbl = document.createEvent('MouseEvents');
+            evObjDbl.initEvent('dblclick', true, false);
+            $("#target1").find(".chronoline-event").each(function () {
+                this.dispatchEvent(evObjDbl);
             });
-             //click all the events in the second timeline
-          var evObj = document.createEvent('MouseEvents');
-          evObj.initEvent('click', true, false);
-          $("#target2").find(".chronoline-event").each(function () {
-              this.dispatchEvent(evObj);
           });
+          test("multiple event test, asset all the events are only called once.", events.length * 2, function (assert) {
+              var clickTextEvents = events.slice(0);
+              var dblClickTestEvents = events.slice(0);
+                var timeline2 = new Chronoline(document.getElementById("target2"), events,
+                {
+                    eventClick: function(data){
+                        for (var i = 0, len = clickTextEvents.length; i < len; i++) {
+                        // assert that all the events are only called once
+                        if (data === clickTextEvents[i]) {
+                            assert.equal(data, clickTextEvents[i], 'Single click event data equals event data.');
+                            clickTextEvents[i] = null;
+                        }
+                    }
+                    },
+                    eventDblClick: function (data) {
+                        for (var i = 0, len = dblClickTestEvents.length; i < len; i++) {
+                            // assert that all the events are only called once
+                            if (data === dblClickTestEvents[i]) {
+                                assert.equal(data, dblClickTestEvents[i], 'Double click event data equals event data.');
+                                dblClickTestEvents[i] = null;
+                            }
+                        }
+                    }
+                });
+                //click all the events in the second timeline
+                var evObj = document.createEvent('MouseEvents');
+                evObj.initEvent('click', true, false);
+                $("#target2").find(".chronoline-event").each(function () {
+                    this.dispatchEvent(evObj);
+                });
+                var dblEvObj = document.createEvent('MouseEvents');
+                dblEvObj.initEvent('dblclick', true, false);
+                $("#target2").find(".chronoline-event").each(function () {
+                    this.dispatchEvent(dblEvObj);
+                });
           });
       });
       
