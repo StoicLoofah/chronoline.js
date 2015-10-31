@@ -442,7 +442,12 @@ function Chronoline(domElement, events, options) {
                 var startX = (myEvent.dates[0].getTime() - t.startTime) * t.pxRatio;
                 var elem = null;
                 if(myEvent.dates.length == 1){  // it's a single point
-                    elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                    elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius)
+                        .attr(t.eventAttrs)
+                        .data("eventData", myEvent)
+                        .click(function () {
+                            t.eventClick(this.data("eventData"));
+                        });
                 } else {  // it's a range
                     var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
                     // left rounded corner
@@ -457,7 +462,12 @@ function Chronoline(domElement, events, options) {
                         rightCircle.attr(myEvent.attrs);
                     }
                     addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
-                    elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
+                    elem = t.paper.rect(startX, upperY, width, t.eventHeight)
+                        .attr(t.eventAttrs)
+                        .data("eventData", myEvent)
+                        .click(function () {
+                            t.eventClick(this.data("eventData"));
+                        });
                 }
 
                 if(typeof myEvent.link != 'undefined') {
@@ -473,10 +483,11 @@ function Chronoline(domElement, events, options) {
                 addElemClass(t.paperType, elem.node, 'chronoline-event');
 
                 elem.attr('title', myEvent.title);
-                var $node = jQuery(elem.node);
+                
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
+                    var $node = jQuery(elem.node);
                     if(typeof description == "undefined" || description === ''){
                         description = title;
                         title = '';
@@ -506,10 +517,10 @@ function Chronoline(domElement, events, options) {
                     });
                 }
                 //set the click event handler on the event 
-                $node.click(myEvent, function(e) {
-                    e.preventDefault();
-                    t.eventClick(e.data);
-                });
+                //$node.click(myEvent, function(e) {
+                //    e.preventDefault();
+                //    t.eventClick(e.data);
+                //});
                 if(t.sections !== null && t.sectionLabelsOnHover){
                     // some magic here to tie the event back to the section label element
                     var originalIndex = myEvent.section;
