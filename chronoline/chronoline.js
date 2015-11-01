@@ -523,11 +523,6 @@ function Chronoline(domElement, events, options) {
                         }
                     });
                 }
-                //set the click event handler on the event 
-                //$node.click(myEvent, function(e) {
-                //    e.preventDefault();
-                //    t.eventClick(e.data);
-                //});
                 if(t.sections !== null && t.sectionLabelsOnHover){
                     // some magic here to tie the event back to the section label element
                     var originalIndex = myEvent.section;
