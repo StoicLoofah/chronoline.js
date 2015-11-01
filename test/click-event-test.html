@@ -1,0 +1,134 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+		<title>Chronoline - event test</title>
+		<link rel="stylesheet" href="qunit.css"/>
+    <link rel="jquery.qtip.min.css"/>
+		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
+	  
+	  <script src="jquery.min.js"></script>
+	  <script src="../chronoline/raphael-min.js"></script>
+	  <script src="qunit.js"></script>
+    <script src="jquery.qtip.min.js"></script>
+	  <script src="../chronoline/chronoline.js"></script>
+  <script>
+  /*QUnit.test("prettydate basics", function( assert ) {
+    var now = "2008/01/28 22:25:00";
+    assert.equal(prettyDate(now, "2008/01/28 22:24:30"), "just now");
+    assert.equal(prettyDate(now, "2008/01/28 22:23:30"), "1 minute ago");
+    assert.equal(prettyDate(now, "2008/01/28 21:23:30"), "1 hour ago");
+    assert.equal(prettyDate(now, "2008/01/27 22:23:30"), "Yesterday");
+    assert.equal(prettyDate(now, "2008/01/26 22:23:30"), "2 days ago");
+    assert.equal(prettyDate(now, "2007/01/26 22:23:30"), undefined);
+  });*/
+  
+  
+      
+      var oneEvent = [
+      {dates: [new Date(2015, 2, 31)], title: "2011 Season Opener", section: 0}]
+
+      var events = [
+      {dates: [new Date(2014, 2, 31)], title: "2011 Season Opener", section: 0},
+      {dates: [new Date(2015, 1, 29)], title: "Spring Training Begins", section: 2},
+      {dates: [new Date(2015, 3, 5)], title: "Atlanta Braves @ New York Mets Game 1", section: 1},
+      {dates: [new Date(2015, 3, 7)], title: "Atlanta Braves @ New York Mets Game 2", section: 1},
+      {dates: [new Date(2015, 3, 8)], title: "Atlanta Braves @ New York Mets Game 3", section: 1},
+      {dates: [new Date(2015, 3, 9), new Date(2015, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1},
+      {dates: [new Date(2015, 3, 13), new Date(2015, 3, 15)], title: "Milwaukee Brewers @ Atlanta Braves", section: 1},
+      {dates: [new Date(2015, 3, 9), new Date(2015, 3, 11)], title: "Boston Red Sox @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2015, 3, 13), new Date(2015, 3, 15)], title: "Baltimore Orioles @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2015, 3, 17), new Date(2015, 3, 19)], title: "Tampa Bay Rays @ Toronto Blue Jays", section: 1},
+      {dates: [new Date(2015, 3, 20), new Date(2015, 3, 23)], title: "Toronto Blue Jays @ Kansas City Royals", section: 1},
+      {dates: [new Date(2015, 3, 5)], title: "Opening Day for 12 Teams", section: 1},
+      {dates: [new Date(2015, 2, 28)], title: "Seattle Mariners v. Oakland A's", section: 1, description: "Played in Japan!"},
+      {dates: [new Date(2015, 4, 18), new Date(2015, 5, 24)], title: "Interleague Play", section: 1},
+      {dates: [new Date(2015, 5, 10)], title: "All-Star Game", section: 1},
+      {dates: [new Date(2015, 9, 24)], title: "World Series Begins", section: 3}
+      ];
+
+      var sections = [
+      {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#eaf0fa"}},
+      {dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#eaf0fa"}}
+      ];
+
+
+      $(document).ready(function(){
+
+        //module( "event click test", {
+          test( "single event test",2,  function(assert) {
+            var timeline1 = new Chronoline(document.getElementById("target1"), oneEvent,
+            {
+              eventClick: function(data){
+                assert.equal(data,oneEvent[0],'single click test, event data equals event data.');
+              },
+              eventDblClick: function (data) {
+                  assert.equal(data, oneEvent[0], 'double click, event data equals event data.');
+              }
+            });
+
+            var evObj = document.createEvent('MouseEvents');
+            evObj.initEvent('click', true, false);
+            $("#target1").find(".chronoline-event").each(function () {
+                this.dispatchEvent(evObj);
+            });
+            var evObjDbl = document.createEvent('MouseEvents');
+            evObjDbl.initEvent('dblclick', true, false);
+            $("#target1").find(".chronoline-event").each(function () {
+                this.dispatchEvent(evObjDbl);
+            });
+          });
+          test("multiple event test, asset all the events are only called once.", events.length * 2, function (assert) {
+              var clickTextEvents = events.slice(0);
+              var dblClickTestEvents = events.slice(0);
+                var timeline2 = new Chronoline(document.getElementById("target2"), events,
+                {
+                    eventClick: function(data){
+                        for (var i = 0, len = clickTextEvents.length; i < len; i++) {
+                        // assert that all the events are only called once
+                        if (data === clickTextEvents[i]) {
+                            assert.equal(data, clickTextEvents[i], 'Single click event data equals event data.');
+                            clickTextEvents[i] = null;
+                        }
+                    }
+                    },
+                    eventDblClick: function (data) {
+                        for (var i = 0, len = dblClickTestEvents.length; i < len; i++) {
+                            // assert that all the events are only called once
+                            if (data === dblClickTestEvents[i]) {
+                                assert.equal(data, dblClickTestEvents[i], 'Double click event data equals event data.');
+                                dblClickTestEvents[i] = null;
+                            }
+                        }
+                    }
+                });
+                //click all the events in the second timeline
+                var evObj = document.createEvent('MouseEvents');
+                evObj.initEvent('click', true, false);
+                $("#target2").find(".chronoline-event").each(function () {
+                    this.dispatchEvent(evObj);
+                });
+                var dblEvObj = document.createEvent('MouseEvents');
+                dblEvObj.initEvent('dblclick', true, false);
+                $("#target2").find(".chronoline-event").each(function () {
+                    this.dispatchEvent(dblEvObj);
+                });
+          });
+      });
+      
+
+
+    
+  </script>
+</head>
+<body>
+
+<div id="qunit"></div>
+<div>Test timline, one event.</div>
+ <div id="target1"></div> 
+ <div>Test timline, multiple events.</div>
+ <div id="target2"></div> 
+</body>
+</html>

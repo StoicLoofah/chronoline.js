@@ -195,6 +195,8 @@ function Chronoline(domElement, events, options) {
 
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
+        eventClick: function () { }, // called when user clicks on event, function(data)
+        eventDblClick: function () { }, // called when user double clicks on event, function(data)
     };
     var t = this;
 
@@ -441,7 +443,15 @@ function Chronoline(domElement, events, options) {
                 var startX = (myEvent.dates[0].getTime() - t.startTime) * t.pxRatio;
                 var elem = null;
                 if(myEvent.dates.length == 1){  // it's a single point
-                    elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius).attr(t.eventAttrs);
+                    elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius)
+                        .attr(t.eventAttrs)
+                        .data("eventData", myEvent)
+                        .click(function () {
+                            t.eventClick(this.data("eventData"));
+                        })
+                        .dblclick(function () {
+                            t.eventDblClick(this.data("eventData"));
+                        });
                 } else {  // it's a range
                     var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
                     // left rounded corner
@@ -456,7 +466,15 @@ function Chronoline(domElement, events, options) {
                         rightCircle.attr(myEvent.attrs);
                     }
                     addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
-                    elem = t.paper.rect(startX, upperY, width, t.eventHeight).attr(t.eventAttrs);
+                    elem = t.paper.rect(startX, upperY, width, t.eventHeight)
+                        .attr(t.eventAttrs)
+                        .data("eventData", myEvent)
+                        .click(function () {
+                            t.eventClick(this.data("eventData"));
+                        })
+                        .dblclick(function () {
+                            t.eventDblClick(this.data("eventData"));
+                        });
                 }
 
                 if(typeof myEvent.link != 'undefined') {
@@ -472,14 +490,16 @@ function Chronoline(domElement, events, options) {
                 addElemClass(t.paperType, elem.node, 'chronoline-event');
 
                 elem.attr('title', myEvent.title);
+                
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
+                    var $node = jQuery(elem.node);
                     if(typeof description == "undefined" || description === ''){
                         description = title;
                         title = '';
                     }
-                    var $node = jQuery(elem.node);
+                    
                     if(Raphael.type == 'SVG')
                         $node = $node.parent();
                     $node.qtip({
