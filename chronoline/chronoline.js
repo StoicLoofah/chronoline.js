@@ -197,6 +197,8 @@ function Chronoline(domElement, events, options) {
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
         eventClick: function () { }, // called when user clicks on event, function(data)
         eventDblClick: function () { }, // called when user double clicks on event, function(data)
+        sectionClick: function () { }, // called when user clicks on a section, function(data, date)
+        sectionDblClick: function () { }, // called when user double clicks on a section, function(data, date)
     };
     var t = this;
 
@@ -400,7 +402,19 @@ function Chronoline(domElement, events, options) {
                 var section = t.sections[i];
                 var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
                 var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
-                var elem = t.paper.rect(startX, 0, width, t.totalHeight);
+                var elem = t.paper.rect(startX, 0, width, t.totalHeight)
+                    .data("sectionData", section)
+                    .click(function (e) {
+                        var clickDate = new Date(t.pxToMs(e.offsetX));
+                        clickDate.stripTime();
+                        t.sectionClick(this.data("sectionData"), clickDate);
+                    })
+                    .dblclick(function (e) {
+                        var clickDate = new Date(t.pxToMs(e.offsetX));
+                        clickDate.stripTime();
+                        t.sectionDblClick(this.data("sectionData"), clickDate);
+                    });
+                addElemClass(t.paperType, elem.node, 'chronoline-section');
                 elem.attr('stroke-width', 0);
                 elem.attr('stroke', '#ffffff');
                 if(typeof section.attrs != "undefined"){
@@ -446,7 +460,7 @@ function Chronoline(domElement, events, options) {
                     elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius)
                         .attr(t.eventAttrs)
                         .data("eventData", myEvent)
-                        .click(function () {
+                        .click(function (e) {
                             t.eventClick(this.data("eventData"));
                         })
                         .dblclick(function () {
