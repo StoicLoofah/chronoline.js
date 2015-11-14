@@ -399,7 +399,7 @@ function Chronoline(domElement, events, options) {
         t.floatingSet = t.paper.set();
         t.sectionLabelSet = t.paper.set();
 
-        //attach background click events
+        //attach background click events function
         t.myCanvas.onclick = function (e) {
             //if not event or section click.
             if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
@@ -408,7 +408,7 @@ function Chronoline(domElement, events, options) {
                 t.backgroundClick(clickDate);
             }
         }
-        //catch background double click events
+        //attach background double click events function
         t.myCanvas.ondblclick = function (e) {
             //if not event or section click.
             if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
