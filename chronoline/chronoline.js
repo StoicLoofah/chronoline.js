@@ -199,6 +199,8 @@ function Chronoline(domElement, events, options) {
         eventDblClick: function () { }, // called when user double clicks on event, function(data)
         sectionClick: function () { }, // called when user clicks on a section, function(data, date)
         sectionDblClick: function () { }, // called when user double clicks on a section, function(data, date)
+        backgroundClick: function () { }, // called when user clicks the background, function(date)
+        backgroundDblClick: function () { }, // called when user double clicks on the background, function(date)
     };
     var t = this;
 
@@ -396,6 +398,26 @@ function Chronoline(domElement, events, options) {
         // DRAWING
         t.floatingSet = t.paper.set();
         t.sectionLabelSet = t.paper.set();
+
+        //attach background click events
+        t.myCanvas.onclick = function (e) {
+            //if not event or section click.
+            if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
+                var clickDate = new Date(t.pxToMs(e.clientX));
+                clickDate.stripTime();
+                t.backgroundClick(clickDate);
+            }
+        }
+        //catch background double click events
+        t.myCanvas.ondblclick = function (e) {
+            //if not event or section click.
+            if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
+                var clickDate = new Date(t.pxToMs(e.clientX));
+                clickDate.stripTime();
+                t.backgroundDblClick(clickDate);
+            }
+        }
+
         // drawing sections
         if(t.sections !== null){
             for(var i = 0; i < t.sections.length; i++){
@@ -403,16 +425,18 @@ function Chronoline(domElement, events, options) {
                 var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
                 var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
                 var elem = t.paper.rect(startX, 0, width, t.totalHeight)
-                    .data("sectionData", section)
+                    .data('sectionData', section)
                     .click(function (e) {
-                        var clickDate = new Date(t.pxToMs(e.offsetX));
+                        e.preventDefault();
+                        var clickDate = new Date(t.pxToMs(e.clientX));
                         clickDate.stripTime();
-                        t.sectionClick(this.data("sectionData"), clickDate);
+                        t.sectionClick(this.data('sectionData'), clickDate);
                     })
                     .dblclick(function (e) {
-                        var clickDate = new Date(t.pxToMs(e.offsetX));
+                        e.preventDefault();
+                        var clickDate = new Date(t.pxToMs(e.clientX));
                         clickDate.stripTime();
-                        t.sectionDblClick(this.data("sectionData"), clickDate);
+                        t.sectionDblClick(this.data('sectionData'), clickDate);
                     });
                 addElemClass(t.paperType, elem.node, 'chronoline-section');
                 elem.attr('stroke-width', 0);
@@ -459,12 +483,14 @@ function Chronoline(domElement, events, options) {
                 if(myEvent.dates.length == 1){  // it's a single point
                     elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius)
                         .attr(t.eventAttrs)
-                        .data("eventData", myEvent)
+                        .data('eventData', myEvent)
                         .click(function (e) {
-                            t.eventClick(this.data("eventData"));
+                            e.preventDefault();
+                            t.eventClick(this.data('eventData'));
                         })
-                        .dblclick(function () {
-                            t.eventDblClick(this.data("eventData"));
+                        .dblclick(function (e) {
+                            e.preventDefault();
+                            t.eventDblClick(this.data('eventData'));
                         });
                 } else {  // it's a range
                     var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
@@ -483,10 +509,12 @@ function Chronoline(domElement, events, options) {
                     elem = t.paper.rect(startX, upperY, width, t.eventHeight)
                         .attr(t.eventAttrs)
                         .data("eventData", myEvent)
-                        .click(function () {
+                        .click(function (e) {
+                            e.preventDefault();
                             t.eventClick(this.data("eventData"));
                         })
-                        .dblclick(function () {
+                        .dblclick(function (e) {
+                            e.preventDefault();
                             t.eventDblClick(this.data("eventData"));
                         });
                 }
