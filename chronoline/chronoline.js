@@ -195,12 +195,12 @@ function Chronoline(domElement, events, options) {
 
         continuousScroll: true,  // requires that scrollable be true, click-and-hold arrows
         continuousScrollSpeed: 1,  // I believe this is px/s of scroll. There is no easing in it
-        eventClick: function () { }, // called when user clicks on event, function(data)
-        eventDblClick: function () { }, // called when user double clicks on event, function(data)
-        sectionClick: function () { }, // called when user clicks on a section, function(data, date)
-        sectionDblClick: function () { }, // called when user double clicks on a section, function(data, date)
-        backgroundClick: function () { }, // called when user clicks the background, function(date)
-        backgroundDblClick: function () { }, // called when user double clicks on the background, function(date)
+        eventClick: null, // called when user clicks on event, function(data)
+        eventDblClick: null, // called when user double clicks on event, function(data)
+        sectionClick: null, // called when user clicks on a section, function(data, date)
+        sectionDblClick: null, // called when user double clicks on a section, function(data, date)
+        backgroundClick: null, // called when user clicks the background, function(date)
+        backgroundDblClick: null // called when user double clicks on the background, function(date)
     };
     var t = this;
 
@@ -400,21 +400,25 @@ function Chronoline(domElement, events, options) {
         t.sectionLabelSet = t.paper.set();
 
         //attach background click events function
-        t.myCanvas.onclick = function (e) {
-            //if not event or section click.
-            if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
-                var clickDate = new Date(t.pxToMs(e.clientX));
-                clickDate.stripTime();
-                t.backgroundClick(clickDate);
+        if (t.backgroundClick) {
+            t.myCanvas.onclick = function(e) {
+                //if not event or section click.
+                if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
+                    var clickDate = new Date(t.pxToMs(e.clientX));
+                    clickDate.stripTime();
+                    t.backgroundClick(clickDate);
+                }
             }
         }
         //attach background double click events function
-        t.myCanvas.ondblclick = function (e) {
-            //if not event or section click.
-            if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
-                var clickDate = new Date(t.pxToMs(e.clientX));
-                clickDate.stripTime();
-                t.backgroundDblClick(clickDate);
+        if (t.backgroundDblClick) {
+            t.myCanvas.ondblclick = function(e) {
+                //if not event or section click.
+                if (e.target.nodeName != 'circle' && e.target.nodeName != 'rect') {
+                    var clickDate = new Date(t.pxToMs(e.clientX));
+                    clickDate.stripTime();
+                    t.backgroundDblClick(clickDate);
+                }
             }
         }
 
@@ -424,20 +428,26 @@ function Chronoline(domElement, events, options) {
                 var section = t.sections[i];
                 var startX = (section.dates[0].getTime() - t.startTime) * t.pxRatio;
                 var width = (section.dates[1] - section.dates[0]) * t.pxRatio;
-                var elem = t.paper.rect(startX, 0, width, t.totalHeight)
-                    .data('sectionData', section)
-                    .click(function (e) {
+                var elem = t.paper.rect(startX, 0, width, t.totalHeight);
+                if (t.sectionClick || t.sectionDblClick) {
+                    elem.data('sectionData', section);
+                }
+                if (t.sectionClick) {
+                    elem.click(function(e) {
                         e.preventDefault();
                         var clickDate = new Date(t.pxToMs(e.clientX));
                         clickDate.stripTime();
                         t.sectionClick(this.data('sectionData'), clickDate);
-                    })
-                    .dblclick(function (e) {
+                    });
+                }
+                if (t.sectionDblClick) {
+                    elem.dblclick(function (e) {
                         e.preventDefault();
                         var clickDate = new Date(t.pxToMs(e.clientX));
                         clickDate.stripTime();
                         t.sectionDblClick(this.data('sectionData'), clickDate);
                     });
+                }
                 addElemClass(t.paperType, elem.node, 'chronoline-section');
                 elem.attr('stroke-width', 0);
                 elem.attr('stroke', '#ffffff');
@@ -482,16 +492,7 @@ function Chronoline(domElement, events, options) {
                 var elem = null;
                 if(myEvent.dates.length == 1){  // it's a single point
                     elem = t.paper.circle(startX, upperY + t.circleRadius, t.circleRadius)
-                        .attr(t.eventAttrs)
-                        .data('eventData', myEvent)
-                        .click(function (e) {
-                            e.preventDefault();
-                            t.eventClick(this.data('eventData'));
-                        })
-                        .dblclick(function (e) {
-                            e.preventDefault();
-                            t.eventDblClick(this.data('eventData'));
-                        });
+                        .attr(t.eventAttrs);
                 } else {  // it's a range
                     var width = (getEndDate(myEvent.dates) - myEvent.dates[0]) * t.pxRatio;
                     // left rounded corner
@@ -507,18 +508,23 @@ function Chronoline(domElement, events, options) {
                     }
                     addElemClass(t.paperType, rightCircle.node, 'chronoline-event');
                     elem = t.paper.rect(startX, upperY, width, t.eventHeight)
-                        .attr(t.eventAttrs)
-                        .data("eventData", myEvent)
-                        .click(function (e) {
-                            e.preventDefault();
-                            t.eventClick(this.data("eventData"));
-                        })
-                        .dblclick(function (e) {
-                            e.preventDefault();
-                            t.eventDblClick(this.data("eventData"));
-                        });
+                        .attr(t.eventAttrs);
                 }
-
+                if (t.eventClick || t.eventDblClick) {
+                    elem.data("eventData", myEvent);
+                }
+                if (t.eventClick) {
+                    elem.click(function(e) {
+                        e.preventDefault();
+                        t.eventClick(this.data("eventData"));
+                    });
+                }
+                if (t.eventDblClick) {
+                    elem.dblclick(function(e) {
+                        e.preventDefault();
+                        t.eventDblClick(this.data("eventData"));
+                    });
+                }
                 if(typeof myEvent.link != 'undefined') {
                     elem.data('link', myEvent.link);
                     elem.click(function(){
