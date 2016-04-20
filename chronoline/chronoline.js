@@ -131,7 +131,11 @@ function forwardWeek(date){
 
 function Chronoline(domElement, events, options) {
     this.VERSION = "0.1.1";
-
+    
+    //sanitize parameters
+    events = events != null ? events : [];
+    options = options != null ? options : {};
+    
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
         startDate: null,  // start of the timeline. Defaults to first event date
@@ -186,7 +190,7 @@ function Chronoline(domElement, events, options) {
         markToday: 'line',  // 'line', 'labelBox', false
         todayAttrs: {'stroke': '#484848'},
 
-        sections: null,
+        sections: [],
         floatingSectionLabels: true,
         sectionLabelAttrs: {},
         sectionLabelsOnHover: true,
@@ -383,10 +387,15 @@ function Chronoline(domElement, events, options) {
         t.totalHeight = t.dateLabelHeight + t.eventsHeight + t.topMargin;
 
         // creating canvas pieces
-        if(t.myCanvas) {
-            // destroy the old one
-            t.wrapper.removeChild(t.myCanvas);
+        //remove right control from wrapper if  exists
+        if (t.myCanvas && t.wrapper.hasChildNodes()) {
+            for(i = t.wrapper.childNodes.length - 1;i >=0;i--)
+                if(t.wrapper.childNodes[i] === t.myCanvas){
+                    t.wrapper.removeChild(t.myCanvas);
+                    break;
+                }
         }
+        
         t.myCanvas = document.createElement('div');
         t.myCanvas.className = 'chronoline-canvas';
         t.wrapper.appendChild(t.myCanvas);
@@ -838,8 +847,13 @@ function Chronoline(domElement, events, options) {
     };
 
     t.initScrollable = function(){
-        if(t.leftControl) {
-            t.wrapper.removeChild(t.leftControl);
+        //remove left control from wrapper if exists
+        if (t.leftControl && t.wrapper.hasChildNodes()) {
+            for(i = t.wrapper.childNodes.length - 1;i >=0;i--)
+                if(t.wrapper.childNodes[i] === t.leftControl){
+                    t.wrapper.removeChild(t.leftControl);
+                    break;
+                }
         }
         t.leftControl = document.createElement('div');
         t.leftControl.className = 'chronoline-left';
@@ -853,9 +867,14 @@ function Chronoline(domElement, events, options) {
                                      t.leftControl.clientHeight);
         t.leftControl.style.height =  controlHeight + 'px';
         leftIcon.style.marginTop = (controlHeight - 15) / 2 + 'px';
-
-        if(t.rightControl) {
-            t.wrapper.removeChild(t.rightControl);
+        
+        //remove right control from wrapper if  exists
+        if (t.rightControl && t.wrapper.hasChildNodes()) {
+            for(i = t.wrapper.childNodes.length - 1;i >=0;i--)
+                if(t.wrapper.childNodes[i] === t.rightControl){
+                    t.wrapper.removeChild(t.rightControl);
+                    break;
+                }
         }
         t.rightControl = document.createElement('div');
         t.rightControl.className = 'chronoline-right';
