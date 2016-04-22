@@ -1,0 +1,40 @@
+{
+  "name": "chronoline",
+  "version": "0.1.2",
+  "description": "chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.",
+  "main": "chronoline/chronoline.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "qtip2": "^2.2.0",
+    "raphael": "^2.1.0",
+    "jquery": "^1.9.1"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^1.0.1",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-qunit": "^1.2.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "qunitjs": "^1.19.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StoicLoofah/chronoline.js.git"
+  },
+  "keywords": [
+    "timeline", "raphael", "chronology", "history", "horizontal"
+  ],
+  "author": "Kevin Leung",
+  "license": "SEE LICENSE IN https://github.com/StoicLoofah/chronoline.js/LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/StoicLoofah/chronoline.js/issues"
+  },
+  "homepage": "https://github.com/StoicLoofah/chronoline.js#readme"
+}

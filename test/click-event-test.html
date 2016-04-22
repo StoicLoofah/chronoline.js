@@ -2,16 +2,15 @@
 <html>
 <head>
 	<meta charset="utf-8"/>
-		<title>Chronoline - event test</title>
-		<link rel="stylesheet" href="qunit.css"/>
-    <link rel="jquery.qtip.min.css"/>
+		<title>Click event test</title>
+		<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css"/>
 		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
 	  
-	  <script src="jquery.min.js"></script>
-	  <script src="../chronoline/raphael-min.js"></script>
-	  <script src="qunit.js"></script>
-    <script src="jquery.qtip.min.js"></script>
-	  <script src="../chronoline/chronoline.js"></script>
+	    <script src="../node_modules/jquery/jquery.min.js"></script>
+	    <script src="../node_modules/raphael/raphael-min.js"></script>
+	    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+        <script src="../node_modules/qtip2/jquery.qtip.min.js"></script>
+	    <script src="../chronoline/chronoline.js"></script>
   <script>
   
   
@@ -48,7 +47,7 @@ var sections = [
 ];
 var dateInsideSections = [
     new Date(2011, 4, 2), // date inside first section
-    new Date(2012, 2, 1),//inside section[2]
+    new Date(2012, 3, 1),//inside section[2]
     new Date(2012, 8, 1),//inside section[1]
     
     new Date(2012, 9, 31)];//inside section[3]
@@ -147,7 +146,7 @@ $(document).ready(function(){
             animated: true,  // whether scrolling is animated or just jumps, requires jQuery
             tooltips: true,  // activates qtip tooltips. Otherwise, you just get title tooltips
             eventClick: function(data){
-                for (var i = 0, len = clickTestEvents.length; i < len; i++) {
+                for (var i = 0; i < clickTestEvents.length; i++) {
                     // assert that all the events are only called once
                     if (data === clickTestEvents[i]) {
                         assert.equal(data, clickTestEvents[i], '09 Single click event data equals event data.');
@@ -156,7 +155,7 @@ $(document).ready(function(){
                 }
             },
             eventDblClick: function (data) {
-                for (var i = 0, len = dblClickTestEvents.length; i < len; i++) {
+                for (var i = 0; i < dblClickTestEvents.length; i++) {
                     // assert that all the events are only called once
                     if (data === dblClickTestEvents[i]) {
                         assert.equal(data, dblClickTestEvents[i], '10 Double click event data equals event data.');
@@ -165,12 +164,12 @@ $(document).ready(function(){
                 }
             },
             sectionClick: function (data, date) {
-                for (var i = 0, len = clickTestSections.length; i < len; i++) {
+                for (var i = 0; i < clickTestSections.length; i++) {
                     // assert that all the sectionx are only called once
                     if (data === clickTestSections[i]) {
                         assert.equal(data, clickTestSections[i], '11 Single click section data equals event data.');
                         //find the date
-                        for (var d = 0, len = dateInsideSections.length; d < len; d++) {
+                        for (var d = 0; d < dateInsideSections.length; d++) {
                             if (date.getTime() === dateInsideSections[d].getTime()) {
                                 assert.equal(date.getTime(), clickTestSectionDates[d].getTime(), '12 Single click, sections test, date matches');
                                 assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '13 date is between section start and end date')
@@ -182,12 +181,12 @@ $(document).ready(function(){
                 }
             },
             sectionDblClick: function (data, date) {
-                for (var i = 0, len = dblClickTestSections.length; i < len; i++) {
+                for (var i = 0; i < dblClickTestSections.length; i++) {
                     // assert that all the sectionx are only called once
                     if (data === dblClickTestSections[i]) {
                         assert.equal(data, dblClickTestSections[i], '14 Double click section data equals event data.');
                         //find the date
-                        for (var d = 0, len = dateInsideSections.length; d < len; d++) {
+                        for (var d = 0; d < dateInsideSections.length; d++) {
                             if (date.getTime() === dateInsideSections[d].getTime()) {
                                 assert.equal(date.getTime(), dblClickTestSectionDates[d].getTime(), '15 Single click, sections test, date matches');
                                 assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '16 date is between section start and end date')
@@ -209,12 +208,12 @@ $(document).ready(function(){
         var evObj = document.createEvent('MouseEvents');
         evObj.initEvent('click', true, false);
         $('#target2').find('.chronoline-event').each(function () {
-            this.dispatchEvent(evObj);
+           this.dispatchEvent(evObj);
         });
         var dblEvObj = document.createEvent('MouseEvents');
         dblEvObj.initEvent('dblclick', true, false);
         $('#target2').find('.chronoline-event').each(function () {
-            this.dispatchEvent(dblEvObj);
+           this.dispatchEvent(dblEvObj);
         });
         dateInsideSections[0].stripTime();
         dateInsideSections[1].stripTime();
@@ -223,18 +222,19 @@ $(document).ready(function(){
         $('#target2').find('.chronoline-section').each(function (index) {
             var sect0px = timeline2.msToPx(dateInsideSections[index].getTime());
             var sect0Evt = mouseEvent('click', sect0px, 4, sect0px, 4);
-            var sect0DblEvt = mouseEvent('dblclick', sect0px, 4, sect0px, 4);
+            var sect0DblEvt = mouseEvent('dblclick', sect0px, 5, sect0px, 5);
             dispatchEvent(this, sect0Evt);
             dispatchEvent(this, sect0DblEvt);
         });
+        
         //dispach clicks on background
         back0.stripTime();
         var back0px = timeline2.msToPx(back0.getTime());
         var back0Evt = mouseEvent('click', back0px, 4, back0px, 4);
         var back0DblEvt = mouseEvent('dblclick', back0px, 4, back0px, 4);
         $('#target2').find('.chronoline-canvas').each(function () {
-            dispatchEvent(this, back0Evt);
-            dispatchEvent(this, back0DblEvt);
+           dispatchEvent(this, back0Evt);
+           dispatchEvent(this, back0DblEvt);
         });
     });
     test('overlapping section click event test - click test', 8, function (assert) {
