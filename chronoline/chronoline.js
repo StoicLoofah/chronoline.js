@@ -130,11 +130,18 @@ function forwardWeek(date){
 }
 
 function Chronoline(domElement, events, options) {
-    this.VERSION = "0.1.1";
+    var t = this;
+    t.VERSION = "0.1.2";
     
-    //sanitize parameters
-    events = events != null ? events : [];
-    options = options != null ? options : {};
+    //sanitize Chronoline parameters
+    //initilize events to emplty arry if null
+    //set optons to empty object if null
+    //thow exception if domElement is not set
+    function paramVal(){
+        events = events != null ? events : [];
+        options = options != null ? options : {};
+        if(domElement == null) throw "Dom element not defined.";
+    }
     
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
@@ -206,53 +213,60 @@ function Chronoline(domElement, events, options) {
         backgroundClick: null, // called when user clicks the background, function(date)
         backgroundDblClick: null // called when user double clicks on the background, function(date)
     };
-    var t = this;
+    
+    //apply the default values and options to the t object
+    // this method should only be called once at initial initilization
+    // initilizes any required attributes that do not need to be recreated by refresh function
+    function setAttrDefaults(){
+        // FILL DEFAULTS
+        for(var attrname in defaults){ t[attrname] = defaults[attrname];}
+        for(var attrname in options){ t[attrname] = options[attrname];}
+        
+        // this is hacky, but necessary for backwards-compability
+        t.originalStartDate = t.startDate;
+        t.originalEndDate = t.endDate;
+        t.originalDefaultStartDate = t.defaultStartDate;
+        
+        // HTML elements to put everything in
+        t.domElement = domElement;
 
-    // FILL DEFAULTS
-    for(var attrname in defaults){ t[attrname] = defaults[attrname];}
-    for(var attrname in options){ t[attrname] = options[attrname];}
+        t.wrapper = document.createElement('div');
+        t.wrapper.className = 'chronoline-wrapper';
+        t.domElement.appendChild(t.wrapper);
+        
+        t.events = events;
+        
+         // generating relevant dates
+        t.today = new Date(Date.now());
+        t.today.stripTime();
 
-    // options shouldn't be on if there aren't any sections
-    t.floatingSectionLabels &= t.sections !== null;
-    t.sectionLabelsOnHover &= t.sections !== null;
-
-    // this is hacky, but necessary for backwards-compability
-    t.originalStartDate = t.startDate;
-    t.originalEndDate = t.endDate;
-    t.originalDefaultStartDate = t.defaultStartDate;
-
-    // HTML elements to put everything in
-    t.domElement = domElement;
-
-    t.wrapper = document.createElement('div');
-    t.wrapper.className = 'chronoline-wrapper';
-    t.domElement.appendChild(t.wrapper);
-
-    // SORT EVENTS
-    t.sortEvents = function(a, b){
-        a = a.dates;
-        b = b.dates;
-
-        var aEnd = a[a.length - 1].getTime();
-        var bEnd = b[b.length - 1].getTime();
-        if(aEnd != bEnd){
-            return aEnd - bEnd;
-        }
-        return a[0].getTime() - b[0].getTime();
-    };
-
-    // need to toss the time variance bits
-    for(var i = 0; i < events.length; i++){
-        for(var j = 0; j < events[i].dates.length; j++){
-            events[i].dates[j] = new Date(events[i].dates[j].getTime());
-            events[i].dates[j].stripTime();
+        //init default start date to today if not initilized
+        if(t.defaultStartDate === null){
+            t.defaultStartDate = t.today;
         }
     }
-    t.events = events;
-    t.events.sort(t.sortEvents);
-
-    // same thing for sections
-    if(t.sections !== null){
+    
+    //Sanitizes and validates attributes.
+    //called before initial init and during refresh to re-sanitize because some properties may have been changed.
+    //Called after attribute defaults are set
+    function preInit(){
+        
+        t.events = t.events === null ? [] : t.events;
+        // need to toss the time variance bits
+        for(var i = 0; i < t.events.length; i++){
+            for(var j = 0; j < t.events[i].dates.length; j++){
+                t.events[i].dates[j] = new Date(t.events[i].dates[j].getTime());
+                t.events[i].dates[j].stripTime();
+            }
+        }
+        t.events.sort(t.sortEvents);
+        
+        
+        t.sections = t.sections === null ? [] : t.sections;
+        // options shouldn't be on if there aren't any sections
+        t.floatingSectionLabels &= t.sections.length !== 0;
+        t.sectionLabelsOnHover &= t.sections.length !== 0;
+        // same thing for sections
         for(var i = 0; i < t.sections.length; i++){
             for(var j = 0; j < t.sections[i].dates.length; j++){
                 t.sections[i].dates[j] = new Date(t.sections[i].dates[j].getTime());
@@ -260,39 +274,17 @@ function Chronoline(domElement, events, options) {
             }
         }
         t.sections.sort(t.sortEvents);
+        
+        
+        t.drawnStartMs = null;
+        t.drawnEndMs = null;
+        
+        t.isMoving = false;
     }
-
-    // 2 handy utility functions
-    t.pxToMs = function(px){
-        return t.startTime + px / t.pxRatio;
-    };
-    t.msToPx = function(ms){
-        return (ms - t.startTime) * t.pxRatio;
-    };
-
-    t.resize = function(visibleSpan) {
-        // useful for zooming
-        t.visibleSpan = visibleSpan;
-        t.init();
-    };
-
-    t.zoom = function(zoomFactor) {
-        t.resize(t.visibleSpan / zoomFactor);
-    };
 
     t.init = function() {
         // CALCULATING MORE THINGS
-        // generating relevant dates
-        t.today = new Date(Date.now());
-        t.today.stripTime();
-
-        t.startDate = t.originalStartDate;
-        t.endDate = t.originalEndDate;
-        t.defaultStartDate = t.originalDefaultStartDate;
-
-        if(t.defaultStartDate === null){
-            t.defaultStartDate = t.today;
-        }
+       
 
         if(t.startDate === null){
             if(t.events.length > 0){
@@ -648,6 +640,39 @@ function Chronoline(domElement, events, options) {
         t.myCanvas.style.height = t.totalHeight + 'px';
     };
 
+    /***************************************************************************/
+    /***************** Helper functions ****************************************/
+    // SORT EVENTS
+    t.sortEvents = function(a, b){
+        a = a.dates;
+        b = b.dates;
+
+        var aEnd = a[a.length - 1].getTime();
+        var bEnd = b[b.length - 1].getTime();
+        if(aEnd != bEnd){
+            return aEnd - bEnd;
+        }
+        return a[0].getTime() - b[0].getTime();
+    };
+    
+    // 2 handy utility functions
+    t.pxToMs = function(px){
+        return t.startTime + px / t.pxRatio;
+    };
+    t.msToPx = function(ms){
+        return (ms - t.startTime) * t.pxRatio;
+    };
+
+    t.resize = function(visibleSpan) {
+        // useful for zooming
+        t.visibleSpan = visibleSpan;
+        t.init();
+    };
+
+    t.zoom = function(zoomFactor) {
+        t.resize(t.visibleSpan / zoomFactor);
+    };
+    
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
@@ -699,10 +724,7 @@ function Chronoline(domElement, events, options) {
             }
         }
     };
-
-
-    t.drawnStartMs = null;
-    t.drawnEndMs = null;
+    
     // this actually draws labels. It calculates the set of labels to draw in-between
     // what it currently has and needs to add
     t.drawLabels = function(leftPxPos){
@@ -739,7 +761,7 @@ function Chronoline(domElement, events, options) {
         }
     };
 
-    t.isMoving = false;
+    
     t.goToPx = function(finalLeft, isAnimated, isLabelsDrawn) {
         /*
           finalLeft is negative
@@ -1016,6 +1038,24 @@ function Chronoline(domElement, events, options) {
         // gets the time (ms) of the right edge of the visible area
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
-
-    t.init();
+    
+    
+    /*****************************************/
+    /****** actual Initilization ********************/
+    
+    //refresh the timeline
+    //sanitizes t attributes that may have been updated.
+    //calls init to redraw the canvas
+    t.refresh = function(){
+        preInit();
+        t.init();
+        return t;
+    };
+    
+    //intilize the control and return     
+    paramVal();//sanitize parameters
+    setAttrDefaults();//initilize t's attributes, sets default values
+    preInit();//sanitizes t's attributes
+    t.init();//initilize the timline canvas
+    return t;
 }
