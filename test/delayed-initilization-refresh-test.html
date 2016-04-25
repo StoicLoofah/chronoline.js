@@ -64,7 +64,7 @@ $(document).ready(function(){
         timeline1.refresh();
         
         //assert
-        assert.equal($("#target1 a .chronoline-event").length, 16, "no script errors");
+        assert.equal($("#target1 .chronoline-event").length,  9 + 7 * 3, "no script errors");
         assert.equal($("#target1 .chronoline-section").length, 4, "correct number of sections");
         assert.equal($("#target1 .chronoline-canvas").length, 1, "correct number of canvas");
         assert.equal($("#target1 .chronoline-wrapper").length, 1, "correct number of wrapper");
@@ -97,7 +97,7 @@ $(document).ready(function(){
         timeline1.refresh();
         
         //assert
-        assert.equal($("#target2 a .chronoline-event").length, 16, "correct number of events");
+        assert.equal($("#target2 .chronoline-event").length, 9 + 7 * 3, "correct number of events");
         assert.equal($("#target2 .chronoline-section").length, 4, "correct number of sections");
         assert.equal($("#target2 .chronoline-canvas").length, 1, "correct number of canvas");
         assert.equal($("#target2 .chronoline-wrapper").length, 1, "correct number of wrapper");
