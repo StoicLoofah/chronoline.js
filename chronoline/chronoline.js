@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // chronoline.js v0.1.3
+=======
+// chronoline.js v0.1.2
+>>>>>>> refs/remotes/StoicLoofah/master
 // by Kevin Leung for Zanbato, https://zanbato.com
 // MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
 
@@ -130,6 +134,7 @@ function forwardWeek(date){
 }
 
 function Chronoline(domElement, events, options) {
+<<<<<<< HEAD
     var t = this;
     t.VERSION = "0.1.3";
     
@@ -143,6 +148,10 @@ function Chronoline(domElement, events, options) {
         if(domElement == null) throw "Dom element not defined.";
     }
     
+=======
+    this.VERSION = "0.1.2";
+
+>>>>>>> refs/remotes/StoicLoofah/master
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
         startDate: null,  // start of the timeline. Defaults to first event date
