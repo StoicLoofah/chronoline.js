@@ -1,4 +1,4 @@
-// chronoline.js v0.1.1
+// chronoline.js v0.1.2
 // by Kevin Leung for Zanbato, https://zanbato.com
 // MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
 
@@ -130,7 +130,7 @@ function forwardWeek(date){
 }
 
 function Chronoline(domElement, events, options) {
-    this.VERSION = "0.1.1";
+    this.VERSION = "0.1.2";
 
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
