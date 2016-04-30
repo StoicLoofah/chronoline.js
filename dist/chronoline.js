@@ -255,7 +255,7 @@ function Chronoline(domElement, events, options) {
         // need to toss the time variance bits
         for(var i = 0; i < t.events.length; i++){
             for(var j = 0; j < t.events[i].dates.length; j++){
-                t.events[i].dates[j] = new Date(t.events[i].dates[j].getTime());
+                t.events[i].dates[j] = new Date(Date.parse(t.events[i].dates[j]));
                 t.events[i].dates[j].stripTime();
             }
         }
@@ -269,7 +269,7 @@ function Chronoline(domElement, events, options) {
         // same thing for sections
         for(var i = 0; i < t.sections.length; i++){
             for(var j = 0; j < t.sections[i].dates.length; j++){
-                t.sections[i].dates[j] = new Date(t.sections[i].dates[j].getTime());
+                t.sections[i].dates[j] = new Date(Date.parse(t.sections[i].dates[j]));
                 t.sections[i].dates[j].stripTime();
             }
         }
@@ -288,18 +288,19 @@ function Chronoline(domElement, events, options) {
 
         if(t.startDate === null){
             if(t.events.length > 0){
-                t.startDate = t.events[0].dates[0];
+                t.startDate = new Date(Date.parse(t.events[0].dates[0]));
                 for(var i = 1; i < t.events.length; i++)
                     if(t.events[i].dates[0] < t.startDate)
-                        t.startDate = t.events[i].dates[0];
+                        t.startDate = new Date(Date.parse(t.events[i].dates[0]));
             } else if(t.sections.length > 0) {
-                t.startDate = t.sections[0].dates[0];
+                t.startDate = new Date(Date.parse(t.sections[0].dates[0]));
                 for(var i = 0; i < t.sections.length; i++){
                     if(t.sections[i].dates[0] < t.startDate)
-                        t.startDate = t.sections[i].dates[0];
+                        t.startDate = new Date(Date.parse(t.sections[i].dates[0]));
                 }
-            } else {
-                return;
+            } else {// default to default start date if no events or sections defined
+                //returning here stops the canvas from being initilized
+                t.startDate = t.defaultStartDate;
             }
         }
         t.startDate.stripTime();
@@ -316,13 +317,14 @@ function Chronoline(domElement, events, options) {
                     if(getEndDate(t.events[i].dates) > t.endDate)
                         t.endDate = getEndDate(t.events[i].dates);
             } else if(t.sections.length > 0) {
-                t.endDate = t.sections[0].dates[1];
+                t.endDate = Date.parse(t.sections[0].dates[1]);
                 for(var i = 0; i < t.sections.length; i++){
                     if(t.sections[i].dates[1] > t.endDate)
-                        t.endDate = t.sections[i].dates[1];
+                        t.endDate = Date.parse(t.sections[i].dates[1]);
                 }
-            } else {
-                return;
+            } else {// default to default start date if no events or sections defined
+                //returning here stops the canvas from being initilized
+                t.endDate = t.defaultStartDate;
             }
         }
         if(t.endDate < t.defaultStartDate) {
