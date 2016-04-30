@@ -1,4 +1,4 @@
-// chronoline.js v0.1.1
+// chronoline.js v0.1.3
 // by Kevin Leung for Zanbato, https://zanbato.com
 // MIT license at https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md
 
@@ -131,7 +131,7 @@ function forwardWeek(date){
 
 function Chronoline(domElement, events, options) {
     var t = this;
-    t.VERSION = "0.1.2";
+    t.VERSION = "0.1.3";
     
     //sanitize Chronoline parameters
     //initilize events to emplty arry if null
