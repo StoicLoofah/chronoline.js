@@ -2,3 +2,6 @@
 chronoline/
 test/
 index.html
+nuget_packages/
+bower.json
+.gitignore

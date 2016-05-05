@@ -20,7 +20,10 @@
     "node_modules",
     "test",
     ".gitignore",
-    "chronoline"
+    "chronoline",
+    "nuget_packages",
+    "index.html",
+    ".npmignore"
   ],
   "dependencies": {
     "raphael": "^2.1.0",
