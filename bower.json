@@ -21,5 +21,10 @@
     "test",
     ".gitignore",
     "chronoline"
-  ]
+  ],
+  "dependencies": {
+    "raphael": "^2.1.0",
+    "qtip2": "^2.2.0",
+    "jquery": "^1.9.1"
+  }
 }
