@@ -90,43 +90,38 @@
     <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.0.1/jquery.qtip.min.css" />
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.0.1/jquery.qtip.min.js"></script>
 
-    <script type="text/javascript" src="chronoline/raphael-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="chronoline/chronoline.css" />
-    <script type="text/javascript" src="chronoline/chronoline.js"></script>
+    <link rel="stylesheet" type="text/css" href="dist/chronoline.css" />
+    <script type="text/javascript" src="dist/chronoline.js"></script>
     <script type="text/javascript">
       $(document).ready(function(){
 
       var events = [
-      {dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0},
-      {dates: [new Date(2012, 1, 29)], title: "Spring Training Begins", section: 2},
-      {dates: [new Date(2012, 3, 5)], title: "Atlanta Braves @ New York Mets Game 1", section: 1},
-      {dates: [new Date(2012, 3, 7)], title: "Atlanta Braves @ New York Mets Game 2", section: 1},
-      {dates: [new Date(2012, 3, 8)], title: "Atlanta Braves @ New York Mets Game 3", section: 1},
-      {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1},
-      {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Milwaukee Brewers @ Atlanta Braves", section: 1},
-      {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Boston Red Sox @ Toronto Blue Jays", section: 1},
-      {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Baltimore Orioles @ Toronto Blue Jays", section: 1},
-      {dates: [new Date(2012, 3, 17), new Date(2012, 3, 19)], title: "Tampa Bay Rays @ Toronto Blue Jays", section: 1},
-      {dates: [new Date(2012, 3, 20), new Date(2012, 3, 23)], title: "Toronto Blue Jays @ Kansas City Royals", section: 1},
-      {dates: [new Date(2012, 3, 5)], title: "Opening Day for 12 Teams", section: 1},
-      {dates: [new Date(2012, 2, 28)], title: "Seattle Mariners v. Oakland A's", section: 1, description: "Played in Japan!"},
-      {dates: [new Date(2012, 4, 18), new Date(2012, 5, 24)], title: "Interleague Play", section: 1},
-      {dates: [new Date(2012, 5, 10)], title: "All-Star Game", section: 1},
-      {dates: [new Date(2012, 9, 24)], title: "World Series Begins", section: 3}
+      {dates: [new Date(2015, 3, 5)], title: "2015 Season Opener", section: 0},
+      {dates: [new Date(2016, 1, 28)], title: "Spring Training Begins", section: 2},
+      {dates: [new Date(2016, 4, 20)], title: "Brewers @ Mets Game 1", section: 1},
+      {dates: [new Date(2016, 4, 21)], title: "Brewers @ Mets Game 2", section: 1},
+      {dates: [new Date(2016, 4, 22)], title: "Brewers @ Mets Game 3", section: 1},
+      {dates: [new Date(2016, 4, 23), new Date(2016, 4, 25)], title: "Mets @ Nationals", section: 1},
+      {dates: [new Date(2016, 4, 23), new Date(2016, 4, 25)], title: "Phillies @ Tigers", section: 1},
+      {dates: [new Date(2016, 4, 23), new Date(2016, 4, 26)], title: "Diamondbacks @ Pirates", section: 1},
+      {dates: [new Date(2016, 4, 26), new Date(2016, 4, 28)], title: "Cardinals @ Nationals", section: 1},
+      {dates: [new Date(2016, 6, 12)], title: "All-Star Game", section: 1},
+      {dates: [new Date(2016, 9, 24)], title: "World Series Begins", section: 3}
       ];
 
       var sections = [
-      {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "#d4e3fd"}},
-      {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#d4e3fd"}},
-      {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#eaf0fa"}},
-      {dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#eaf0fa"}}
+      {dates: [new Date(2015, 3, 5), new Date(2015, 10, 2)], title: "2015 MLB Regular Season", section: 0, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2016, 3, 3), new Date(2016, 9, 2)], title: "2016 MLB Season", section: 1, attrs: {fill: "#d4e3fd"}},
+      {dates: [new Date(2016, 1, 28), new Date(2016, 3, 2)], title: "Spring Training", section: 2, attrs: {fill: "#eaf0fa"}},
+      {dates: [new Date(2016, 9, 3), new Date(2016, 9, 31)], title: "2016 MLB Playoffs", section: 3, attrs: {fill: "#eaf0fa"}}
       ];
 
       var timeline1 = new Chronoline(document.getElementById("target1"), events,
         {animated: true,
          tooltips: true,
-         defaultStartDate: new Date(2012, 3, 5),
+         defaultStartDate: new Date(2016, 4, 17),
          sections: sections,
          sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
       });
@@ -134,17 +129,17 @@
       $('#to-today').click(function(){timeline1.goToToday();});
 
       var sections2 = [
-      {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "##e3f0fe"}},
-      {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#e3f0fe"}},
-      {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#cce5ff"}},
-      {dates: [new Date(2012, 9, 4), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#cce5ff"}}
+      {dates: [new Date(2015, 3, 5), new Date(2015, 10, 2)], title: "2015 MLB Regular Season", section: 0, attrs: {fill: "#e3f0fe"}},
+      {dates: [new Date(2016, 3, 3), new Date(2016, 9, 2)], title: "2016 MLB Season", section: 1, attrs: {fill: "#e3f0fe"}},
+      {dates: [new Date(2016, 1, 28), new Date(2016, 3, 2)], title: "Spring Training", section: 2, attrs: {fill: "#cce5ff"}},
+      {dates: [new Date(2016, 9, 3), new Date(2016, 9, 31)], title: "2016 MLB Playoffs", section: 3, attrs: {fill: "#cce5ff"}}
       ];
 
       var timeline2 = new Chronoline(document.getElementById("target2"), events,
         {visibleSpan: DAY_IN_MILLISECONDS * 91,
       animated: true,
          tooltips: true,
-         defaultStartDate: new Date(2012, 3, 5),
+         defaultStartDate: new Date(2016, 4, 1),
          sections: sections2,
          sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
       labelInterval: isFifthDay,
@@ -159,7 +154,7 @@
         {visibleSpan: DAY_IN_MILLISECONDS * 366,
       animated: true,
          tooltips: true,
-         defaultStartDate: new Date(2012, 3, 5),
+         defaultStartDate: new Date(2016, 4, 25),
          sections: sections,
          sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
       labelInterval: isHalfMonth,
