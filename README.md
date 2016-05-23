@@ -97,13 +97,29 @@ Support
 -------
 I mostly don't know what versions of various components are required. So far, I have used:
 * raphael.js: 2.1.0
-* jQuery: 1.7.2
-* [qTip2](http://qtip2.com/): 2.0.1
+* jQuery: 1.9.1
+* [qTip2](http://qtip2.com/): 2.2.0
 
 Browser support is:
 * Internet Explorer 8+
 * Firefox 12+
 * Chrome 18+
+
+How to build:
+You'll need [Node.JS](https://nodejs.org/en/), at least `v5.10`.
+
+After you have these tools installed, run the following command to install dependencies:
+```bash
+npm install
+```
+To run all the tests and create your own minified version:
+```bash
+grunt default
+```
+To just run the tests:
+```bash
+grunt test
+```
 
 Credits
 -------

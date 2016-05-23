@@ -1,0 +1,323 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+		<title>Click event test</title>
+		<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css"/>
+		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
+	  
+	    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	    <script src="../node_modules/raphael/raphael.min.js"></script>
+	    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+        <script src="../node_modules/qtip2/jquery.qtip.min.js"></script>
+	    <script src="../chronoline/chronoline.js"></script>
+  <script>
+  
+  
+      
+var oneEvent = [
+    { dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0 }];
+var oneSection = [
+    { dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: { fill: "#d4e3fd" } }];
+
+var events = [
+    {dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0},
+    {dates: [new Date(2012, 1, 29)], title: "Spring Training Begins", section: 2},
+    {dates: [new Date(2012, 3, 5)], title: "Atlanta Braves @ New York Mets Game 1", section: 1},
+    {dates: [new Date(2012, 3, 7)], title: "Atlanta Braves @ New York Mets Game 2", section: 1},
+    {dates: [new Date(2012, 3, 8)], title: "Atlanta Braves @ New York Mets Game 3", section: 1},
+    {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Atlanta Braves @ Houston Astros", section: 1},
+    {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Milwaukee Brewers @ Atlanta Braves", section: 1},
+    {dates: [new Date(2012, 3, 9), new Date(2012, 3, 11)], title: "Boston Red Sox @ Toronto Blue Jays", section: 1},
+    {dates: [new Date(2012, 3, 13), new Date(2012, 3, 15)], title: "Baltimore Orioles @ Toronto Blue Jays", section: 1},
+    {dates: [new Date(2012, 3, 17), new Date(2012, 3, 19)], title: "Tampa Bay Rays @ Toronto Blue Jays", section: 1},
+    {dates: [new Date(2012, 3, 20), new Date(2012, 3, 23)], title: "Toronto Blue Jays @ Kansas City Royals", section: 1},
+    {dates: [new Date(2012, 3, 5)], title: "Opening Day for 12 Teams", section: 1},
+    {dates: [new Date(2012, 2, 28)], title: "Seattle Mariners v. Oakland A's", section: 1, description: "Played in Japan!"},
+    {dates: [new Date(2012, 4, 18), new Date(2012, 5, 24)], title: "Interleague Play", section: 1},
+    {dates: [new Date(2012, 5, 10)], title: "All-Star Game", section: 1},
+    {dates: [new Date(2012, 9, 24)], title: "World Series Begins", section: 3}
+    ];
+
+var sections = [
+    {dates: [new Date(2011, 2, 31), new Date(2011, 9, 28)], title: "2011 MLB Season", section: 0, attrs: {fill: "#d4e3fd"}},
+    {dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: {fill: "#d4e3fd"}},
+    {dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: {fill: "#eaf0fa"}},
+    {dates: [new Date(2012, 9, 5), new Date(2012, 9, 31)], title: "2012 MLB Playoffs", section: 3, attrs: {fill: "#eaf0fa"}}
+];
+var dateInsideSections = [
+    new Date(2011, 4, 2), // date inside first section
+    new Date(2012, 3, 1),//inside section[2]
+    new Date(2012, 8, 1),//inside section[1]
+    
+    new Date(2012, 9, 31)];//inside section[3]
+
+var overlapSections = [
+    { dates: [new Date(2012, 2, 28), new Date(2012, 9, 3)], title: "2012 MLB Regular Season", section: 1, attrs: { fill: "#d4e3fd" } },
+    { dates: [new Date(2012, 1, 29), new Date(2012, 3, 4)], title: "Spring Training", section: 2, attrs: { fill: "#eaf0fa" } },
+];
+var sectionOverlapDate = new Date(2012, 3, 1);// inside overlap 
+
+var back0 = new Date(2011, 2, 23);
+$(document).ready(function(){
+    test('single event, single section, default formating - click test', 8, function (assert) {
+        //initilize the timeline with 4 sections and one event
+        var timeline1 = new Chronoline(document.getElementById('target1'), oneEvent,
+        {
+            defaultStartDate: new Date(2011,2,20),
+            sections: oneSection,
+            eventClick: function(data){
+                assert.equal(data,oneEvent[0],'01 single click test, event data equals event data.');
+            },
+            eventDblClick: function (data) {
+                assert.equal(data, oneEvent[0], '02 double click, event data equals event data.');
+            },
+            sectionClick: function (data, date) {
+                assert.equal(data, oneSection[0], '03 single click, event data equals section data.');
+                assert.equal(date.getTime(), dateInsideSections[0].getTime(), '04 single click, evnet date equals clicked position.');
+            },
+            sectionDblClick: function (data, date) {
+                assert.equal(data, oneSection[0], '05 double click, event data equals section data.');
+                assert.equal(date.getTime(), dateInsideSections[0].getTime(), '06 double click, evnet date equals clicked position.');
+            },
+            backgroundClick: function (date) {
+                assert.equal(date.getTime(), back0.getTime(), '07 single click, background date equals clicked position.');
+            },
+            backgroundDblClick: function (date) {
+                assert.equal(date.getTime(), back0.getTime(), '08 double click, background date equals clicked position.');
+            }
+        });
+        //dispach a clicks clicks on events
+        var evObj = document.createEvent('MouseEvents');
+        evObj.initEvent('click', true, false);
+        var evObjDbl = document.createEvent('MouseEvents');
+        evObjDbl.initEvent('dblclick', true, false);
+        $('#target1').find('.chronoline-event').each(function () {
+            this.dispatchEvent(evObj);
+            this.dispatchEvent(evObjDbl);
+        });
+        //dispach clicks on section
+        dateInsideSections[0].stripTime();
+        var sect0px = timeline1.msToPx(dateInsideSections[0].getTime());
+        var sect0Evt = mouseEvent('click', sect0px, 4, sect0px, 4);
+        var sect0DblEvt = mouseEvent('dblclick', sect0px, 4, sect0px, 4);
+        $('#target1').find('.chronoline-section').each(function () {
+            dispatchEvent(this, sect0Evt);
+            dispatchEvent(this, sect0DblEvt);
+        });
+
+        //dispach clicks on background
+        back0.stripTime();
+        var back0px = timeline1.msToPx(back0.getTime());
+        var back0Evt = mouseEvent('click', back0px, 15, back0px, 15);
+        var back0DblEvt = mouseEvent('dblclick', back0px, 15, back0px, 15);
+        $('#target1').find('.chronoline-canvas').each(function () {
+            dispatchEvent(this, back0Evt);
+            dispatchEvent(this, back0DblEvt);
+        });
+    });
+    test('multiple event test, different formatting and scale from test1 - click test', events.length * 2 + sections.length * 6 + 2, function (assert) {
+        //setup test data
+        var clickTestEvents = events.slice(0);
+        var dblClickTestEvents = events.slice(0);
+        var clickTestSections = sections.slice(0);
+        var dblClickTestSections = sections.slice(0);
+        var clickTestSectionDates = dateInsideSections.slice(0);
+        var dblClickTestSectionDates = dateInsideSections.slice(0);
+        //initilize second timeline
+        var timeline2 = new Chronoline(document.getElementById('target2'), events,
+        {
+            defaultStartDate: new Date(2011, 2, 20),
+            sections: sections,
+            visibleSpan: 31556900000,  // 1 year
+            timelinePadding: 864000000, //10 days
+            fitVisibleSpan: false,
+            hashInterval: function (date) { // every sunday
+                var day = date.getDay();
+                return day == 0;
+            },  
+            labelInterval: function (date) { // monthly
+                var day = date.getDate();
+                return day == 1;
+            },  
+            subLabel: 'month',
+            subSubLabel: 'year', 
+            scrollable: true,
+            animated: true,  // whether scrolling is animated or just jumps, requires jQuery
+            tooltips: true,  // activates qtip tooltips. Otherwise, you just get title tooltips
+            eventClick: function(data){
+                for (var i = 0; i < clickTestEvents.length; i++) {
+                    // assert that all the events are only called once
+                    if (data === clickTestEvents[i]) {
+                        assert.equal(data, clickTestEvents[i], '09 Single click event data equals event data.');
+                        clickTestEvents[i] = null;
+                    }
+                }
+            },
+            eventDblClick: function (data) {
+                for (var i = 0; i < dblClickTestEvents.length; i++) {
+                    // assert that all the events are only called once
+                    if (data === dblClickTestEvents[i]) {
+                        assert.equal(data, dblClickTestEvents[i], '10 Double click event data equals event data.');
+                        dblClickTestEvents[i] = null;
+                    }
+                }
+            },
+            sectionClick: function (data, date) {
+                for (var i = 0; i < clickTestSections.length; i++) {
+                    // assert that all the sectionx are only called once
+                    if (data === clickTestSections[i]) {
+                        assert.equal(data, clickTestSections[i], '11 Single click section data equals event data.');
+                        //find the date
+                        for (var d = 0; d < dateInsideSections.length; d++) {
+                            if (date.getTime() === dateInsideSections[d].getTime()) {
+                                assert.equal(date.getTime(), clickTestSectionDates[d].getTime(), '12 Single click, sections test, date matches');
+                                assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '13 date is between section start and end date')
+                                clickTestSectionDates[d] = null;
+                            }
+                        }
+                        clickTestSections[i] = null;
+                    }
+                }
+            },
+            sectionDblClick: function (data, date) {
+                for (var i = 0; i < dblClickTestSections.length; i++) {
+                    // assert that all the sectionx are only called once
+                    if (data === dblClickTestSections[i]) {
+                        assert.equal(data, dblClickTestSections[i], '14 Double click section data equals event data.');
+                        //find the date
+                        for (var d = 0; d < dateInsideSections.length; d++) {
+                            if (date.getTime() === dateInsideSections[d].getTime()) {
+                                assert.equal(date.getTime(), dblClickTestSectionDates[d].getTime(), '15 Single click, sections test, date matches');
+                                assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '16 date is between section start and end date')
+                                dblClickTestSectionDates[d] = null;
+                            }
+                        }
+                        dblClickTestSections[i] = null;
+                    }
+                }
+            },
+            backgroundClick: function (date) {
+                assert.equal(date.getTime(), back0.getTime(), '17 single click, background date equals clicked position.');
+            },
+            backgroundDblClick: function (date) {
+                assert.equal(date.getTime(), back0.getTime(), '18 double click, background date equals clicked position.');
+            }
+        });
+        //click all the events in the second timeline
+        var evObj = document.createEvent('MouseEvents');
+        evObj.initEvent('click', true, false);
+        $('#target2').find('.chronoline-event').each(function () {
+           this.dispatchEvent(evObj);
+        });
+        var dblEvObj = document.createEvent('MouseEvents');
+        dblEvObj.initEvent('dblclick', true, false);
+        $('#target2').find('.chronoline-event').each(function () {
+           this.dispatchEvent(dblEvObj);
+        });
+        dateInsideSections[0].stripTime();
+        dateInsideSections[1].stripTime();
+        dateInsideSections[2].stripTime();
+        dateInsideSections[3].stripTime();
+        $('#target2').find('.chronoline-section').each(function (index) {
+            var sect0px = timeline2.msToPx(dateInsideSections[index].getTime());
+            var sect0Evt = mouseEvent('click', sect0px, 4, sect0px, 4);
+            var sect0DblEvt = mouseEvent('dblclick', sect0px, 5, sect0px, 5);
+            dispatchEvent(this, sect0Evt);
+            dispatchEvent(this, sect0DblEvt);
+        });
+        
+        //dispach clicks on background
+        back0.stripTime();
+        var back0px = timeline2.msToPx(back0.getTime());
+        var back0Evt = mouseEvent('click', back0px, 4, back0px, 4);
+        var back0DblEvt = mouseEvent('dblclick', back0px, 4, back0px, 4);
+        $('#target2').find('.chronoline-canvas').each(function () {
+           dispatchEvent(this, back0Evt);
+           dispatchEvent(this, back0DblEvt);
+        });
+    });
+    test('overlapping section click event test - click test', 8, function (assert) {
+        //initilize second timeline
+        var timeline3 = new Chronoline(document.getElementById('target3'), events,
+        {
+            defaultStartDate: new Date(2011, 2, 20),
+            sections: overlapSections,
+            sectionClick: function (data, date) {
+                assert.equal(date.getTime(), sectionOverlapDate.getTime(), '19 Single click, sections test, date matches');
+                assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '20 date is between section start and end date');
+            },
+            sectionDblClick: function (data, date) {
+                assert.equal(date.getTime(), sectionOverlapDate.getTime(), '21 Single click, sections test, date matches');
+                assert.ok(data.dates[0].getTime() <= date.getTime() && data.dates[1].getTime() >= date.getTime(), '22 date is between section start and end date');
+            }
+        });
+        sectionOverlapDate.stripTime();
+        $('#target3').find('.chronoline-section').each(function () {
+            var sect0px = timeline3.msToPx(sectionOverlapDate.getTime());
+            var sect0Evt = mouseEvent('click', sect0px, 4, sect0px, 4);
+            var sect0DblEvt = mouseEvent('dblclick', sect0px, 4, sect0px, 4);
+            dispatchEvent(this, sect0Evt);
+            dispatchEvent(this, sect0DblEvt);
+        });
+    });
+});
+      
+//create a mouse event with type and x y cordinates
+//supports several browsers
+function mouseEvent(type, sx, sy, cx, cy) {
+    var evt;
+    var e = {
+        bubbles: true,
+        cancelable: (type != 'mousemove'),
+        view: window,
+        detail: 0,
+        screenX: sx,
+        screenY: sy,
+        clientX: cx,
+        clientY: cy,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        button: 0,
+        relatedTarget: undefined
+    };
+    if (typeof (document.createEvent) == 'function') {
+        evt = document.createEvent('MouseEvents');
+        evt.initMouseEvent(type,
+        e.bubbles, e.cancelable, e.view, e.detail,
+        e.screenX, e.screenY, e.clientX, e.clientY,
+        e.ctrlKey, e.altKey, e.shiftKey, e.metaKey,
+        e.button, document.body.parentNode);
+    } else if (document.createEventObject) {
+        evt = document.createEventObject();
+        for (prop in e) {
+            evt[prop] = e[prop];
+        }
+        evt.button = { 0: 1, 1: 4, 2: 2 }[evt.button] || evt.button;
+    }
+    return evt;
+}
+//dispach mouse event
+// supports multiple browsers
+function dispatchEvent(el, evt) {
+    if (el.dispatchEvent) {
+        el.dispatchEvent(evt);
+    } else if (el.fireEvent) {
+        el.fireEvent('on' + type, evt);
+    }
+    return evt;
+}
+  </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div>Test timline, one event.</div>
+    <div id="target1"></div> 
+    <div>Test timline, multiple events.</div>
+    <div id="target2"></div> 
+    <div>Test overlapping events.</div>
+    <div id="target3"></div> 
+</body>
+</html>
