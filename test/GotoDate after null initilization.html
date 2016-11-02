@@ -1,0 +1,44 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+		<title>Empty parameter</title>
+		<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css"/>
+		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
+	  
+	    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	    <script src="../node_modules/raphael/raphael.min.js"></script>
+	    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+        <script src="../node_modules/qtip2/jquery.qtip.min.js"></script>
+	    <script src="../chronoline/chronoline.js"></script>
+  <script>
+  var oneEvent = [
+    { dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0 }];
+    
+$(document).ready(function(){
+    
+    
+    test('gotToDate after null initilization', 1, function (assert) {
+        //arrange
+        var cronoTest5 = Chronoline(document.getElementById('target5'), null,null);
+        
+        //act
+        cronoTest5.goToDate(new Date(2015, 1, 1), 0);
+        
+        //assert
+        assert.ok(true,"no script errors");
+    });
+    
+});
+      
+  </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="target1"></div> 
+    <div id="target2"></div> 
+    <div id="target3"></div> 
+    <div id="target4"></div> 
+    <div id="target5"></div>
+</body>
+</html>

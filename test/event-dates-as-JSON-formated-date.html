@@ -1,0 +1,90 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+		<title>Delayed initilization test</title>
+		<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css"/>
+		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
+	  
+	    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	    <script src="../node_modules/raphael/raphael.min.js"></script>
+	    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+        <script src="../node_modules/qtip2/jquery.qtip.min.js"></script>
+	    <script src="../chronoline/chronoline.js"></script>
+  <script>
+
+var events = [
+    {dates: ["2011-02-31T00:00:00"]},
+    {dates: ["2012-01-29T00:00:00"]},
+    {dates: ["2011-03-09T00:00:00","2011-03-11T00:00:00"]}
+    ];
+
+var sections = [
+    {dates: ["2011-02-31T00:00:00", "2011-09-28T00:00:00"], section: 0, attrs: {fill: "#d4e3fd"}},
+];
+
+
+$(document).ready(function(){
+    
+    test('dates as strings', 4, function (assert) {
+        //arrange
+        
+        
+        //act
+        var timeline1 = new Chronoline(document.getElementById('target1'), events,{
+            visibleSpan: DAY_IN_MILLISECONDS * 91,
+            animated: true,
+            tooltips: true,
+            defaultStartDate: new Date(2011, 2, 5),
+            sections: sections,
+            sectionLabelAttrs: {'fill': '#997e3d', 'font-weight': 'bold'},
+            labelInterval: isFifthDay,
+            hashInterval: isFifthDay,
+            scrollLeft: prevMonth,
+            scrollRight: nextMonth,
+            markToday: 'labelBox',
+            draggable: true
+        });
+      
+        //assert
+        assert.equal($("#target1 .chronoline-event").length, 5 , "correct number of events");
+        assert.equal($("#target1 .chronoline-section").length, 1, "correct number of sections");
+        assert.equal($("#target1 .chronoline-canvas").length, 1, "correct number of canvas");
+        assert.equal($("#target1 .chronoline-wrapper").length, 1, "correct number of wrapper");
+    });
+    
+    test('dates as strings, null initilization/refresh', 4, function (assert) {
+        //arrange
+        var timeline2 = new Chronoline(document.getElementById('target2'), null,null);
+        timeline2.events = events
+        timeline2.visibleSpan = DAY_IN_MILLISECONDS * 91;
+        timeline2.animated = true;
+        timeline2.tooltips = true;
+        timeline2.defaultStartDate = new Date(2012, 3, 5);
+        timeline2.sections = sections;
+        timeline2.sectionLabelAttrs = {'fill': '#997e3d', 'font-weight': 'bold'};
+        timeline2.labelInterval = isFifthDay;
+        timeline2.hashInterval = isFifthDay;
+        timeline2.scrollLeft = prevMonth;
+        timeline2.scrollRight = nextMonth;
+        timeline2.markToday = 'labelBox';
+        timeline2.draggable = true;
+        
+        //act
+        timeline2.refresh();
+        
+        //assert
+        assert.equal($("#target2 .chronoline-event").length, 5, "correct number of events");
+        assert.equal($("#target2 .chronoline-section").length, 1, "correct number of sections");
+        assert.equal($("#target2 .chronoline-canvas").length, 1, "correct number of canvas");
+        assert.equal($("#target2 .chronoline-wrapper").length, 1, "correct number of wrapper");
+    }); 
+});
+  </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="target1"></div>
+    <div id="target2"></div>
+</body>
+</html>

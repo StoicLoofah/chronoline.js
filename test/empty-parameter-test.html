@@ -1,0 +1,65 @@
+﻿<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+		<title>Empty parameter</title>
+		<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css"/>
+		<link rel="stylesheet" href="../chronoline/chronoline.css"/>
+	  
+	    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	    <script src="../node_modules/raphael/raphael.min.js"></script>
+	    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+        <script src="../node_modules/qtip2/jquery.qtip.min.js"></script>
+	    <script src="../chronoline/chronoline.js"></script>
+  <script>
+  var oneEvent = [
+    { dates: [new Date(2011, 2, 31)], title: "2011 Season Opener", section: 0 }];
+    
+$(document).ready(function(){
+    test('initilize with empty options parameter', 1, function (assert) {
+        Chronoline(document.getElementById('target1'), oneEvent,{});
+        assert.ok(true,"no script errors");
+    });
+    
+    test('initilize with null options parameter', 1, function (assert) {
+        Chronoline(document.getElementById('target2'), oneEvent,null);
+        assert.ok(true,"no script errors");
+    });
+    
+    test('initilize with empty events parameter', 1, function (assert) {
+        Chronoline(document.getElementById('target3'), [],null);
+        assert.ok(true,"no script errors ");
+    });
+    
+    test('initilize with null events parameter', 1, function (assert) {
+        Chronoline(document.getElementById('target4'), null,null);
+        assert.ok(true,"no script errors");
+    });
+    
+    test('initilize with null events parameter', 1, function (assert) {
+        Chronoline(document.getElementById('target4'), null,null);
+        assert.ok(true,"no script errors");
+    });
+    
+    test('initilize with null target element parameter', 1, function (assert) {
+        try{
+            Chronoline(null, null,null);
+            assert.ok(false,"no exception thrown");
+        }
+        catch(e){
+            assert.ok(true, "Exception was thrown correctly")
+        }
+    });
+    
+});
+      
+  </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="target1"></div> 
+    <div id="target2"></div> 
+    <div id="target3"></div> 
+    <div id="target4"></div> 
+</body>
+</html>

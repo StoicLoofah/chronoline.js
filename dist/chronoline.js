@@ -142,6 +142,7 @@ function Chronoline(domElement, events, options) {
         options = options != null ? options : {};
         if(domElement == null) throw "Dom element not defined.";
     }
+    
     var defaults = {
         defaultStartDate: null,  // the date furthest to the left on load. Defaults to today
         startDate: null,  // start of the timeline. Defaults to first event date
