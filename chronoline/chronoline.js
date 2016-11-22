@@ -132,7 +132,7 @@ function forwardWeek(date){
 function Chronoline(domElement, events, options) {
     var t = this;
     t.VERSION = "0.1.3";
-    
+
     //sanitize Chronoline parameters
     //initilize events to emplty arry if null
     //set optons to empty object if null
@@ -193,6 +193,8 @@ function Chronoline(domElement, events, options) {
         animated: false,  // whether scrolling is animated or just jumps, requires jQuery
 
         tooltips: false,  // activates qtip tooltips. Otherwise, you just get title tooltips
+        qtipOptions: {},  // additional options to pass to qTip
+
         markToday: 'line',  // 'line', 'labelBox', false
         todayAttrs: {'stroke': '#484848'},
 
@@ -212,7 +214,7 @@ function Chronoline(domElement, events, options) {
         backgroundClick: null, // called when user clicks the background, function(date)
         backgroundDblClick: null // called when user double clicks on the background, function(date)
     };
-    
+
     //apply the default values and options to the t object
     // this method should only be called once at initial initilization
     // initilizes any required attributes that do not need to be recreated by refresh function
@@ -220,21 +222,21 @@ function Chronoline(domElement, events, options) {
         // FILL DEFAULTS
         for(var attrname in defaults){ t[attrname] = defaults[attrname];}
         for(var attrname in options){ t[attrname] = options[attrname];}
-        
+
         // this is hacky, but necessary for backwards-compability
         t.originalStartDate = t.startDate;
         t.originalEndDate = t.endDate;
         t.originalDefaultStartDate = t.defaultStartDate;
-        
+
         // HTML elements to put everything in
         t.domElement = domElement;
 
         t.wrapper = document.createElement('div');
         t.wrapper.className = 'chronoline-wrapper';
         t.domElement.appendChild(t.wrapper);
-        
+
         t.events = events;
-        
+
          // generating relevant dates
         t.today = new Date(Date.now());
         t.today.stripTime();
@@ -244,12 +246,12 @@ function Chronoline(domElement, events, options) {
             t.defaultStartDate = t.today;
         }
     }
-    
+
     //Sanitizes and validates attributes.
     //called before initial init and during refresh to re-sanitize because some properties may have been changed.
     //Called after attribute defaults are set
     function preInit(){
-        
+
         t.events = t.events === null ? [] : t.events;
         // need to toss the time variance bits
         for(var i = 0; i < t.events.length; i++){
@@ -259,8 +261,8 @@ function Chronoline(domElement, events, options) {
             }
         }
         t.events.sort(t.sortEvents);
-        
-        
+
+
         t.sections = t.sections === null ? [] : t.sections;
         // options shouldn't be on if there aren't any sections
         t.floatingSectionLabels &= t.sections.length !== 0;
@@ -273,17 +275,17 @@ function Chronoline(domElement, events, options) {
             }
         }
         t.sections.sort(t.sortEvents);
-        
-        
+
+
         t.drawnStartMs = null;
         t.drawnEndMs = null;
-        
+
         t.isMoving = false;
     }
 
     t.init = function() {
         // CALCULATING MORE THINGS
-       
+
 
         if(t.startDate === null){
             if(t.events.length > 0){
@@ -388,7 +390,7 @@ function Chronoline(domElement, events, options) {
                     break;
                 }
         }
-        
+
         t.myCanvas = document.createElement('div');
         t.myCanvas.className = 'chronoline-canvas';
         t.wrapper.appendChild(t.myCanvas);
@@ -540,7 +542,7 @@ function Chronoline(domElement, events, options) {
                 addElemClass(t.paperType, elem.node, 'chronoline-event');
 
                 elem.attr('title', myEvent.title);
-                
+
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
@@ -549,10 +551,10 @@ function Chronoline(domElement, events, options) {
                         description = title;
                         title = '';
                     }
-                    
+
                     if(Raphael.type == 'SVG')
                         $node = $node.parent();
-                    $node.qtip({
+                    var usedQtipOptions = {
                         content: {
                             title: title,
                             text: description
@@ -571,7 +573,9 @@ function Chronoline(domElement, events, options) {
                         style: {
                             classes: 'qtip-shadow qtip-dark qtip-rounded'
                         }
-                    });
+                    };
+                    $.extend(true, usedQtipOptions, t.qtipOptions);
+                    $node.qtip(usedQtipOptions);
                 }
                 if(t.sections !== null && t.sectionLabelsOnHover){
                     // some magic here to tie the event back to the section label element
@@ -655,7 +659,7 @@ function Chronoline(domElement, events, options) {
         }
         return a[0].getTime() - b[0].getTime();
     };
-    
+
     // 2 handy utility functions
     t.pxToMs = function(px){
         return t.startTime + px / t.pxRatio;
@@ -673,7 +677,7 @@ function Chronoline(domElement, events, options) {
     t.zoom = function(zoomFactor) {
         t.resize(t.visibleSpan / zoomFactor);
     };
-    
+
     t.drawLabelsHelper = function(startMs, endMs){
         for(var curMs = startMs; curMs < endMs; curMs += DAY_IN_MILLISECONDS){
             var curDate = new Date(curMs);
@@ -725,7 +729,7 @@ function Chronoline(domElement, events, options) {
             }
         }
     };
-    
+
     // this actually draws labels. It calculates the set of labels to draw in-between
     // what it currently has and needs to add
     t.drawLabels = function(leftPxPos){
@@ -762,7 +766,7 @@ function Chronoline(domElement, events, options) {
         }
     };
 
-    
+
     t.goToPx = function(finalLeft, isAnimated, isLabelsDrawn) {
         /*
           finalLeft is negative
@@ -890,7 +894,7 @@ function Chronoline(domElement, events, options) {
                                      t.leftControl.clientHeight);
         t.leftControl.style.height =  controlHeight + 'px';
         leftIcon.style.marginTop = (controlHeight - 15) / 2 + 'px';
-        
+
         //remove right control from wrapper if  exists
         if (t.rightControl && t.wrapper.hasChildNodes()) {
             for(i = t.wrapper.childNodes.length - 1;i >=0;i--)
@@ -1039,11 +1043,11 @@ function Chronoline(domElement, events, options) {
         // gets the time (ms) of the right edge of the visible area
         return Math.floor(t.startTime - (getLeft(t.paperElem) - t.visibleWidth) / t.pxRatio);
     };
-    
-    
+
+
     /*****************************************/
     /****** actual Initilization ********************/
-    
+
     //refresh the timeline
     //sanitizes t attributes that may have been updated.
     //calls init to redraw the canvas
@@ -1052,8 +1056,8 @@ function Chronoline(domElement, events, options) {
         t.init();
         return t;
     };
-    
-    //intilize the control and return     
+
+    //intilize the control and return
     paramVal();//sanitize parameters
     setAttrDefaults();//initilize t's attributes, sets default values
     preInit();//sanitizes t's attributes
