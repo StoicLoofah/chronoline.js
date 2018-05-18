@@ -997,7 +997,7 @@ function Chronoline(domElement, events, options) {
 
         } else {  // just hook up discrete scrolling
             t.leftControl.onclick = t.scrollLeftDiscrete;
-            t.rightControl.onclick = t.scrollLeftDiscrete;
+            t.rightControl.onclick = t.scrollRightDiscrete;
         }
     };
 

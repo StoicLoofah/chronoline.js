@@ -29,7 +29,11 @@
     "url": "git+https://github.com/StoicLoofah/chronoline.js.git"
   },
   "keywords": [
-    "timeline", "raphael", "chronology", "history", "horizontal"
+    "timeline",
+    "raphael",
+    "chronology",
+    "history",
+    "horizontal"
   ],
   "author": "Kevin Leung",
   "license": "SEE LICENSE IN https://github.com/StoicLoofah/chronoline.js/LICENSE.md",
