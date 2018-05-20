@@ -7,9 +7,10 @@
     "test": "test"
   },
   "dependencies": {
+    "jquery": "^1.9.1",
+    "npm": "^6.0.1",
     "qtip2": "^2.2.0",
-    "raphael": "^2.1.0",
-    "jquery": "^1.9.1"
+    "raphael": "^2.1.0"
   },
   "devDependencies": {
     "grunt": "^1.0.1",

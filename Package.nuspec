@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>chronoline</id>
+    <version>0.1.5</version>
+    <authors>padhraic</authors>
+    <owners>Kevin Leung</owners>
+    <licenseUrl>https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>http://stoicloofah.github.io/chronoline.js/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.
+
+You can see a demo at http://stoicloofah.github.io/chronoline.js/</description>
+    <releaseNotes>Currently, chronoline.js only requires raphael.js to function. jQuery is used to provide nicer tooltips (using qTip2) and dragging support, but these aren't required.</releaseNotes>
+    <copyright>MIT</copyright>
+    <tags>timeline raphael chronology history horizontal</tags>
+    <dependencies>
+      <dependency id="jQuery" version="1.9.1" />
+      <dependency id="qTip2" version="2.2.0" />
+      <dependency id="RaphaelJS" version="2.1.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="dist\chronoline.min.css" target="Content\chronoline.min.css" />
+    <file src="dist\chronoline.min.js" target="Scripts\chronoline.min.js" />
+    <file src="dist\sprites.png" target="Content\sprites.png" />
+  </files>
+</package>
