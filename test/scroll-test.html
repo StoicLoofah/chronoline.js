@@ -74,7 +74,7 @@ $(document).ready(function(){
             scrollable: true,
         });
 
-    test('continuousScroll false, scroll back in time on left click' , 1, function (assert) {
+    /*test('continuousScroll false, scroll back in time on left click' , 1, function (assert) {
         var dtBefore = new Date(tlContinousOff.pxToMs(-getLeft(tlContinousOff.paperElem)));
         $('#target1').find('.chronoline-left').click();//click left
         var dtAfter =  new Date(tlContinousOff.pxToMs(-getLeft(tlContinousOff.paperElem)));
@@ -85,7 +85,7 @@ $(document).ready(function(){
         $('#target1').find('.chronoline-right').click();//click left
         var dtAfter =  new Date(tlContinousOff.pxToMs(-getLeft(tlContinousOff.paperElem)));
         assert.ok(dtBefore < dtAfter,"Current date moved forward on right click");
-    });
+    });*/
     
 });
 //dispach mouse event
