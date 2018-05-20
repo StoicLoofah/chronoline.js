@@ -1,9 +1,11 @@
 {
   "name": "chronoline",
   "description": "chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.",
-  "main": ["dist/chronoline.min.js",
-        "dist/chronoline.min.css",
-        "dist/sprites.png"],
+  "main": [
+    "dist/chronoline.min.js",
+    "dist/chronoline.min.css",
+    "dist/sprites.png"
+  ],
   "authors": [
     "Kevin Leung"
   ],
