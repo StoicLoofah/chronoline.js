@@ -1,6 +1,6 @@
 {
   "name": "chronoline",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "chronoline.js is a library for making a chronology timeline out of events on a horizontal timescale.",
   "main": "chronoline/chronoline.js",
   "directories": {

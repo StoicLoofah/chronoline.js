@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>chronoline</id>
-    <version>0.1.5</version>
+    <version>0.1.6</version>
     <authors>padhraic</authors>
     <owners>Kevin Leung</owners>
     <licenseUrl>https://github.com/StoicLoofah/chronoline.js/blob/master/LICENSE.md</licenseUrl>
