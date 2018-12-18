@@ -580,7 +580,8 @@ function Chronoline(domElement, events, options) {
                 if (myEvent.attrs.text) {
                     try {
                         var tNodeVal = typeof (myEvent.attrs.text) === "string" ? myEvent.attrs.text : myEvent.attrs.text.value;
-                        var tNode = t.paper.text(startX, upperY + 10, tNodeVal);
+                        var yOffset = myEvent.attrs.text.offset || 10;
+                        var tNode = t.paper.text(startX, upperY + yOffset, tNodeVal);
                         if (myEvent.attrs.text.options) {
                             tNode.attr(myEvent.attrs.text.options);
                         } else if (options.eventLabels) {
