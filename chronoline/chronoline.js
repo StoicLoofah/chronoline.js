@@ -544,27 +544,28 @@ function Chronoline(domElement, events, options) {
 
                 if(typeof myEvent.attrs != "undefined"){
                     elem.attr(myEvent.attrs);
+
+                    if (myEvent.attrs.text) {
+                        try {
+                            var tNodeVal = typeof (myEvent.attrs.text) === "string" ? myEvent.attrs.text : myEvent.attrs.text.value;
+                            var yOffset = myEvent.attrs.text.offset || 10;
+                            var tNode = t.paper.text(startX, upperY + yOffset, tNodeVal);
+                            if (myEvent.attrs.text.options) {
+                                tNode.attr(myEvent.attrs.text.options);
+                            } else if (options.eventLabels) {
+                                tNode.attr(options.eventLabels);
+                            } else {
+                                tNode.attr(defaults.eventLabels);
+                            }
+                        } catch (e) {
+                            console.log("Error adding text to events: " + e);
+                        }
+                    }
+
                 }
                 addElemClass(t.paperType, elem.node, 'chronoline-event');
 
                 elem.attr('title', myEvent.title);
-
-                if (myEvent.attrs.text) {
-                    try {
-                        var tNodeVal = typeof (myEvent.attrs.text) === "string" ? myEvent.attrs.text : myEvent.attrs.text.value;
-                        var yOffset = myEvent.attrs.text.offset || 10;
-                        var tNode = t.paper.text(startX, upperY + yOffset, tNodeVal);
-                        if (myEvent.attrs.text.options) {
-                            tNode.attr(myEvent.attrs.text.options);
-                        } else if (options.eventLabels) {
-                            tNode.attr(options.eventLabels);
-                        } else {
-                            tNode.attr(defaults.eventLabels);
-                        }
-                    } catch (e) {
-                        console.log("Error adding text to events: " + e);
-                    }
-                }
                 
                 if(t.tooltips){
                     var description = myEvent.description;
