@@ -166,6 +166,12 @@ function Chronoline(domElement, events, options) {
             stroke: '#0055e1',
             "stroke-width": 2
         },
+        
+        eventLabels: {
+            "font-size": 12,
+            fill: "#000",
+            "text-anchor": "start"
+        },
 
         // predefined fns include: null (for daily), isFifthDay, isHalfMonth
         hashInterval: null,  // fn: date -> boolean, if a hash should appear
@@ -554,6 +560,23 @@ function Chronoline(domElement, events, options) {
 
                 elem.attr('title', myEvent.title);
 
+                if (myEvent.attrs.text) {
+                    try {
+                        var tNodeVal = typeof (myEvent.attrs.text) === "string" ? myEvent.attrs.text : myEvent.attrs.text.value;
+                        var yOffset = myEvent.attrs.text.offset || 10;
+                        var tNode = t.paper.text(startX, upperY + yOffset, tNodeVal);
+                        if (myEvent.attrs.text.options) {
+                            tNode.attr(myEvent.attrs.text.options);
+                        } else if (options.eventLabels) {
+                            tNode.attr(options.eventLabels);
+                        } else {
+                            tNode.attr(defaults.eventLabels);
+                        }
+                    } catch (e) {
+                        console.log("Error adding text to events: " + e);
+                    }
+                }
+                
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
