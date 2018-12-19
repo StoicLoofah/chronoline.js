@@ -218,7 +218,18 @@ function Chronoline(domElement, events, options) {
         sectionClick: null, // called when user clicks on a section, function(data, date)
         sectionDblClick: null, // called when user double clicks on a section, function(data, date)
         backgroundClick: null, // called when user clicks the background, function(date)
-        backgroundDblClick: null // called when user double clicks on the background, function(date)
+        backgroundDblClick: null, // called when user double clicks on the background, function(date)
+        sortEvents: function (a, b) {
+            a = a.dates;
+            b = b.dates;
+
+            var aEnd = a[a.length - 1].getTime();
+            var bEnd = b[b.length - 1].getTime();
+            if (aEnd != bEnd) {
+                return aEnd - bEnd;
+            }
+            return a[0].getTime() - b[0].getTime();
+        }
     };
 
     //apply the default values and options to the t object
@@ -670,19 +681,6 @@ function Chronoline(domElement, events, options) {
 
     /***************************************************************************/
     /***************** Helper functions ****************************************/
-    // SORT EVENTS
-    t.sortEvents = function(a, b){
-        a = a.dates;
-        b = b.dates;
-
-        var aEnd = a[a.length - 1].getTime();
-        var bEnd = b[b.length - 1].getTime();
-        if(aEnd != bEnd){
-            return aEnd - bEnd;
-        }
-        return a[0].getTime() - b[0].getTime();
-    };
-
     // 2 handy utility functions
     t.pxToMs = function(px){
         return t.startTime + px / t.pxRatio;
