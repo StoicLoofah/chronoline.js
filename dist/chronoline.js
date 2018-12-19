@@ -166,6 +166,12 @@ function Chronoline(domElement, events, options) {
             stroke: '#0055e1',
             "stroke-width": 2
         },
+        
+        eventLabels: {
+            "font-size": 12,
+            fill: "#000",
+            "text-anchor": "start"
+        },
 
         // predefined fns include: null (for daily), isFifthDay, isHalfMonth
         hashInterval: null,  // fn: date -> boolean, if a hash should appear
@@ -230,6 +236,17 @@ function Chronoline(domElement, events, options) {
                     rowLastPxs.push(this.msToPx(getEndDate(events[i].dates).getTime()) + this.circleRadius);
                 }
             }
+        },
+        sortEvents: function (a, b) {
+            a = a.dates;
+            b = b.dates;
+
+            var aEnd = a[a.length - 1].getTime();
+            var bEnd = b[b.length - 1].getTime();
+            if (aEnd != bEnd) {
+                return aEnd - bEnd;
+            }
+            return a[0].getTime() - b[0].getTime();
         }
     };
 
@@ -545,6 +562,23 @@ function Chronoline(domElement, events, options) {
 
                 elem.attr('title', myEvent.title);
 
+                if (myEvent.attrs.text) {
+                    try {
+                        var tNodeVal = typeof (myEvent.attrs.text) === "string" ? myEvent.attrs.text : myEvent.attrs.text.value;
+                        var yOffset = myEvent.attrs.text.offset || 10;
+                        var tNode = t.paper.text(startX, upperY + yOffset, tNodeVal);
+                        if (myEvent.attrs.text.options) {
+                            tNode.attr(myEvent.attrs.text.options);
+                        } else if (options.eventLabels) {
+                            tNode.attr(options.eventLabels);
+                        } else {
+                            tNode.attr(defaults.eventLabels);
+                        }
+                    } catch (e) {
+                        console.log("Error adding text to events: " + e);
+                    }
+                }
+                
                 if(t.tooltips){
                     var description = myEvent.description;
                     var title = myEvent.title;
@@ -649,19 +683,6 @@ function Chronoline(domElement, events, options) {
 
     /***************************************************************************/
     /***************** Helper functions ****************************************/
-    // SORT EVENTS
-    t.sortEvents = function(a, b){
-        a = a.dates;
-        b = b.dates;
-
-        var aEnd = a[a.length - 1].getTime();
-        var bEnd = b[b.length - 1].getTime();
-        if(aEnd != bEnd){
-            return aEnd - bEnd;
-        }
-        return a[0].getTime() - b[0].getTime();
-    };
-
     // 2 handy utility functions
     t.pxToMs = function(px){
         return t.startTime + px / t.pxRatio;
