@@ -219,6 +219,24 @@ function Chronoline(domElement, events, options) {
         sectionDblClick: null, // called when user double clicks on a section, function(data, date)
         backgroundClick: null, // called when user clicks the background, function(date)
         backgroundDblClick: null, // called when user double clicks on the background, function(date)
+        processEventNodes: function (events, eventRows, rowLastPxs) {
+            for (var i = 0; i < events.length; i++) {
+                var found = false;
+                var startPx = this.msToPx(events[i].dates[0].getTime()) - this.circleRadius;
+                for (var j = 0; j < eventRows.length; j++) {
+                    if (rowLastPxs[j] < startPx) {
+                        eventRows[j].push(events[i]);
+                        rowLastPxs[j] = this.msToPx(getEndDate(events[i].dates).getTime()) + this.circleRadius;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    eventRows.push([events[i]]);
+                    rowLastPxs.push(this.msToPx(getEndDate(events[i].dates).getTime()) + this.circleRadius);
+                }
+            }
+        },
         sortEvents: function (a, b) {
             a = a.dates;
             b = b.dates;
@@ -376,23 +394,7 @@ function Chronoline(domElement, events, options) {
 
         t.eventRows = [[]];
         t.rowLastPxs = [0];
-
-        for(var i = 0; i < t.events.length; i++){
-            var found = false;
-            var startPx = t.msToPx(t.events[i].dates[0].getTime()) - t.circleRadius;
-            for(var j = 0; j < t.eventRows.length; j++){
-                if(t.rowLastPxs[j] < startPx){
-                    t.eventRows[j].push(t.events[i]);
-                    t.rowLastPxs[j] = t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius;
-                    found = true;
-                    break;
-                }
-            }
-            if(!found){
-                t.eventRows.push([t.events[i]]);
-                t.rowLastPxs.push(t.msToPx(getEndDate(t.events[i].dates).getTime()) + t.circleRadius);
-            }
-        }
+        t.processEventNodes(t.events, t.eventRows, t.rowLastPxs);
 
         // a few more calculations and creation
         t.eventsHeight = Math.max(Math.min(t.eventRows.length * (t.eventMargin + t.eventHeight), t.maxEventsHeight), t.minEventsHeight);
